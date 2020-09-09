@@ -1,1 +1,1 @@
-# Service Integration Manager
+# i3-Market Service Integration Manager
