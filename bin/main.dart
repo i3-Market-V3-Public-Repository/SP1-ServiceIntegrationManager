@@ -176,11 +176,21 @@ void connectControllersToServices(String projectPath, String serviceName) {
       'constructor(@service($providerName) public ${serviceName.camelCase}: $serviceName)',
     );
     final operationRegexp = RegExp(
-        r"async (?<function>\w+)\(\): Promise<\w+> {\s+(?<body>throw new Error\('Not implemented'\);)");
+        r'async (?<function>\w+)'
+        r'\((?<params>(@[\w\.]+\(.*\) \w+: \w+, )*(@[\w\.]+\(.*\) \w+: \w+)?)\): '
+        r"Promise<\w+> {\s+(?<body>throw new Error\('Not implemented'\);)",
+        dotAll: true);
     fileContent = fileContent.replaceAllMapped(operationRegexp, (match) {
       final rematch = match as RegExpMatch;
-      return rematch[0].replaceFirst(rematch.namedGroup('body'),
-          'return this.${serviceName.camelCase}.${rematch.namedGroup('function')}()');
+      final params = rematch
+          .namedGroup('params')
+          .split(RegExp(r'@[\w\.]+\(.*?\)', dotAll: true))
+          .where((element) => element.isNotEmpty)
+          .map((e) => e.split(':').first.trim());
+      return rematch[0].replaceFirst(
+          rematch.namedGroup('body'),
+          'return this.${serviceName.camelCase}.${rematch.namedGroup('function')}'
+          '(${params.join(', ')})');
     });
     controllerFile.writeAsStringSync(fileContent);
   }
