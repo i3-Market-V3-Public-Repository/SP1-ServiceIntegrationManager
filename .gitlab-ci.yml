@@ -4,6 +4,12 @@ before_script:
   - export PATH="$PATH":"~/.pub-cache/bin"
   - pub get --no-precompile
 
-build:
+compile:
   script:
     - dart2native ./bin/create.dart --output ./executables/create.exe
+    - git add ./executables/create.exe
+    - git commit -m "Update compiled executable"
+    - git push
+  only:
+    changes:
+      - bin/create.dart
