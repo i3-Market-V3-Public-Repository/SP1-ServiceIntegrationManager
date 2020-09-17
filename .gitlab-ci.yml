@@ -5,13 +5,10 @@ before_script:
   - pub get --no-precompile
 
 compile:
-  script:
-    - dart2native ./bin/create.dart --output ./executables/create.exe
-    - git add ./executables/create.exe
-    - git config user.email 'victor.divi@upc.edu'
-    - git config user.name 'Gitlab CI'
-    - git commit -m "Update compiled executable"
-    - git push origin develop
+  script: dart2native ./bin/create.dart --output ./executables/setup_template
+  artifacts:
+    paths:
+      - ./executables/setup_template
   only:
     changes:
       - bin/create.dart
