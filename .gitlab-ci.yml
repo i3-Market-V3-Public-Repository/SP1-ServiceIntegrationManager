@@ -11,7 +11,7 @@ compile:
     - git config user.email 'victor.divi@upc.edu'
     - git config user.name 'Gitlab CI'
     - git commit -m "Update compiled executable"
-    - git push
+    - git push origin develop
   only:
     changes:
       - bin/create.dart
