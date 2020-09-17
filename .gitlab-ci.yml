@@ -1,0 +1,5 @@
+image: google/dart:latest
+
+build:
+  script:
+    - dart2native ./bin/create.dart --output ./executables/create.exe

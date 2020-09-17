@@ -33,21 +33,25 @@ String askServiceNameAndOverwrite(String projectPath) {
   }
   final specFile = getFile(integratedServicesDirectory, serviceName);
   if (specFile != null) {
-    print('A service with this name is already integrated.');
-    print('Do you want to overwrite it? [y/N]: ');
-    final confirmation = {'y', 'yes'}.contains(stdin.readLineSync().toLowerCase());
-    if (confirmation) {
-      specFile.deleteSync();
-      Directory('$projectPath/src/controllers/$serviceName').deleteSync(recursive: true);
-      Directory('$projectPath/src/datasources/$serviceName').deleteSync(recursive: true);
-      Directory('$projectPath/src/models/$serviceName').deleteSync(recursive: true);
-      Directory('$projectPath/src/repositories/$serviceName').deleteSync(recursive: true);
-      Directory('$projectPath/src/services/$serviceName').deleteSync(recursive: true);
-    } else {
-      exit(1);
-    }
+    overwriteService(specFile, projectPath, serviceName);
   }
   return serviceName;
+}
+
+void overwriteService(File specFile, String projectPath, String serviceName) {
+  print('A service with this name is already integrated.');
+  print('Do you want to overwrite it? [y/N]: ');
+  final confirmation = {'y', 'yes'}.contains(stdin.readLineSync().toLowerCase());
+  if (confirmation) {
+    specFile.deleteSync();
+    Directory('$projectPath/src/controllers/$serviceName').deleteSync(recursive: true);
+    Directory('$projectPath/src/datasources/$serviceName').deleteSync(recursive: true);
+    Directory('$projectPath/src/models/$serviceName').deleteSync(recursive: true);
+    Directory('$projectPath/src/repositories/$serviceName').deleteSync(recursive: true);
+    Directory('$projectPath/src/services/$serviceName').deleteSync(recursive: true);
+  } else {
+    exit(1);
+  }
 }
 
 File getFile(Directory directory, String filename) {

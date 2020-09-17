@@ -7,7 +7,7 @@ void main() {
   final serviceName = askName();
   downloadRepository(serviceName);
   changeName(serviceName);
-  setupSSL('./${serviceName.paramCase}');
+  // setupSSL('./${serviceName.paramCase}');
 }
 
 bool checkRequirements() {
