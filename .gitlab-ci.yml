@@ -1,5 +1,9 @@
 image: google/dart:latest
 
+before_script:
+  - export PATH="$PATH":"~/.pub-cache/bin"
+  - pub get --no-precompile
+
 build:
   script:
     - dart2native ./bin/create.dart --output ./executables/create.exe
