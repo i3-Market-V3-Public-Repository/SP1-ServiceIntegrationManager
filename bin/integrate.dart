@@ -181,7 +181,7 @@ void connectControllersToServices(String projectPath, String serviceName) {
     );
     final operationRegexp = RegExp(
         r'async (?<function>\w+)'
-        r'\((?<params>(@[\w\.]+\(.*\) \w+: \w+, )*(@[\w\.]+\(.*\) \w+: \w+)?)\): '
+        r'\((?<params>(@[\w\.]+\(.*\) \w+: [\w\| ]+, )*(@[\w\.]+\(.*\) \w+: [\w\| ]+)?)\): '
         r"Promise<\w+> {\s+(?<body>throw new Error\('Not implemented'\);)",
         dotAll: true);
     fileContent = fileContent.replaceAllMapped(operationRegexp, (match) {
