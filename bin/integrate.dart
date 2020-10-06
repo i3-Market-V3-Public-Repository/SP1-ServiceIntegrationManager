@@ -105,7 +105,7 @@ void integrateService(String projectPath, String serviceName, File specFile) {
   String output = runServiceCreation(serviceName, projectPath, specFile);
   moveFiles(output, projectPath, serviceName);
   remakeIndices(projectPath);
-  connectControllersToServices(projectPath, serviceName);
+  finishControllers(projectPath, serviceName);
 }
 
 void createServiceDirectories(String projectPath, String serviceName) {
@@ -164,38 +164,48 @@ void remakeIndices(String projectPath) {
   }
 }
 
-void connectControllersToServices(String projectPath, String serviceName) {
+void finishControllers(String projectPath, String serviceName) {
   final controllers =
       Directory('$projectPath/src/controllers/$serviceName').listSync().whereType<File>();
   for (final controllerFile in controllers) {
-    String fileContent = controllerFile.readAsStringSync();
-    final controllerName = RegExp(r'export class (\w+) {').firstMatch(fileContent)[1];
-    final serviceName = controllerName.replaceAll('Controller', 'Service');
-    final providerName = serviceName + 'Provider';
-    fileContent = "import {$serviceName, $providerName} from '../../services';\n"
-            "import {service} from '@loopback/core';\n" +
-        fileContent;
-    fileContent = fileContent.replaceAll(
-      'constructor()',
-      'constructor(@service($providerName) public ${serviceName.camelCase}: $serviceName)',
-    );
-    final operationRegexp = RegExp(
-        r'async (?<function>\w+)'
-        r'\((?<params>(@[\w\.]+\(.*\) \w+: [\w\| ]+, )*(@[\w\.]+\(.*\) \w+: [\w\| ]+)?)\): '
-        r"Promise<\w+> {\s+(?<body>throw new Error\('Not implemented'\);)",
-        dotAll: true);
-    fileContent = fileContent.replaceAllMapped(operationRegexp, (match) {
-      final rematch = match as RegExpMatch;
-      final params = rematch
-          .namedGroup('params')
-          .split(RegExp(r'@[\w\.]+\(.*?\)', dotAll: true))
-          .where((element) => element.isNotEmpty)
-          .map((e) => e.split(':').first.trim());
-      return rematch[0].replaceFirst(
-          rematch.namedGroup('body'),
-          'return this.${serviceName.camelCase}.${rematch.namedGroup('function')}'
-          '(${params.join(', ')})');
-    });
-    controllerFile.writeAsStringSync(fileContent);
+    final controller = controllerFile.readAsStringSync();
+    final protectedController = protectController(controller);
+    final connectedController = connectController(protectedController, projectPath, serviceName);
+    controllerFile.writeAsStringSync(connectedController);
   }
+}
+
+String protectController(String controller) {
+  return controller.replaceAll('export class', "@authenticate('jwt')\nexport class");
+}
+
+String connectController(String protectedController, String projectPath, String serviceName) {
+  String controller = protectedController;
+  final controllerName = RegExp(r'export class (\w+) {').firstMatch(controller)[1];
+  final serviceName = controllerName.replaceAll('Controller', 'Service');
+  final providerName = serviceName + 'Provider';
+  controller = "import {$serviceName, $providerName} from '../../services';\n"
+          "import {service} from '@loopback/core';\n" +
+      controller;
+  controller = controller.replaceAll(
+    'constructor()',
+    'constructor(@service($providerName) public ${serviceName.camelCase}: $serviceName)',
+  );
+  final operationRegexp = RegExp(
+      r'async (?<function>\w+)'
+      r'\((?<params>(@[\w\.]+\(.*\) \w+: [\w\| ]+, )*(@[\w\.]+\(.*\) \w+: [\w\| ]+)?)\): '
+      r"Promise<\w+> {\s+(?<body>throw new Error\('Not implemented'\);)",
+      dotAll: true);
+  return controller.replaceAllMapped(operationRegexp, (match) {
+    final rematch = match as RegExpMatch;
+    final params = rematch
+        .namedGroup('params')
+        .split(RegExp(r'@[\w\.]+\(.*?\)', dotAll: true))
+        .where((element) => element.isNotEmpty)
+        .map((e) => e.split(':').first.trim());
+    return rematch[0].replaceFirst(
+        rematch.namedGroup('body'),
+        'return this.${serviceName.camelCase}.${rematch.namedGroup('function')}'
+        '(${params.join(', ')})');
+  });
 }
