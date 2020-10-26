@@ -185,7 +185,8 @@ String connectController(String protectedController, String projectPath, String 
   final serviceName = controllerName.replaceAll('Controller', 'Service');
   final providerName = serviceName + 'Provider';
   controller = "import {$serviceName, $providerName} from '../../services';\n"
-          "import {service} from '@loopback/core';\n" +
+          "import {service} from '@loopback/core';\n"
+          "import {authenticate} from '@loopback/authentication';\n" +
       controller;
   controller = controller.replaceAll(
     'constructor()',
