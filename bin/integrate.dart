@@ -199,7 +199,7 @@ String protectController(String controller) {
     var endpoint = match[0];
     if (security != null) {
       final scopes =
-          (security.firstWhere((element) => (element as Map).containsKey('openidConnect'))['openidConnect'] as List);
+          (security.firstWhere((element) => (element as Map).containsKey('openIdConnect'))['openIdConnect'] as List);
       print('$method: $path Scopes: $scopes');
       endpoint = endpoint.replaceFirst('async', '@authenticate(JWT_STRATEGY_NAME)\n  async');
       if (scopes.isNotEmpty) {
