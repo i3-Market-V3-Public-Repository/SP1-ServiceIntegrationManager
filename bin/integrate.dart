@@ -301,7 +301,7 @@ String connectController(String protectedController, String projectPath, String 
         '  constructor(@service($providerName) public ${serviceName.camelCase}: $serviceName,\n'
         '              @inject(RestBindings.Http.REQUEST) private request: Request,\n'
         "              @inject('config.secrets') private secrets: {[service: string]: string}) {\n"
-        "    this.secret = this.secrets['${subsystemName}'];\n"
+        "    this.secret = this.secrets['$subsystemName'];\n"
         '  }',
   );
   final operationRegexp = RegExp(
