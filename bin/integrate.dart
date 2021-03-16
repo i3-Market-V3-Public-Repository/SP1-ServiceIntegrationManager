@@ -136,8 +136,8 @@ void modifySpec(File specFile) {
             securitySchemas.whereType<Map<String, dynamic>>().any((element) => element.containsKey('openIdConnect'));
         if (isSecured) {
           final newParams = [
-            {'name': 'backplane-user', 'in': 'header', 'required': true},
-            {'name': 'authorization', 'in': 'header', 'required': true}
+            {'name': 'authorization', 'in': 'header', 'required': true},
+            {'name': 'backplane-token', 'in': 'header', 'required': true}
           ];
           metadata.update('parameters', (value) => (value as List)..insertAll(0, newParams), ifAbsent: () => newParams);
         }
@@ -256,33 +256,36 @@ String protectController(String controller) {
         endpoint = endpoint.replaceFirst('async', '@authorize({scopes: $scopesString})\n  async');
       }
       final body = match.namedGroup('body')!;
-      endpoint = endpoint.replaceAll(body,
-          "const userJwt = sign(user, this.secret);\nconst authorization = this.request.headers['authorization']!;\n$body");
+      endpoint = endpoint.replaceAll(
+          body,
+          'const authorization = `Bearer \${sign(user, this.secret)}`;\n'
+          "    const backplaneToken = this.request.headers['authorization']!;\n"
+          '    $body');
       controller = controller.replaceFirst(match[0]!, endpoint);
     } else {
       print('\t$method: $path No security');
     }
   }
 
-  final userParamSpecRegexp = RegExp(r" *\{\s*name\: 'backplane-user',\s*in: 'header',\s*required: true,\s*},\s*");
-  controller = controller.replaceAll(userParamSpecRegexp, '');
-
   final authParamSpecRegexp = RegExp(r" *\{\s*name\: 'authorization',\s*in: 'header',\s*required: true,\s*},\s*");
   controller = controller.replaceAll(authParamSpecRegexp, '');
 
-  final userParamRegexp =
-      RegExp(r"@param\(\{\s*name\: 'backplane-user',\s*in: 'header',\s*required: true,\s*\}\) backplaneUser: string");
-  controller = controller.replaceAll(userParamRegexp, '@inject(SecurityBindings.USER) user: BackplaneUserProfile');
-
   final authParamRegexp =
-      RegExp(r"@param\(\{\s*name\: 'authorization',\s*in: 'header',\s*required: true,\s*\}\) authorization: string,?");
-  controller = controller.replaceAll(authParamRegexp, '');
-
-  final jsUserDocRegexp = RegExp(r'\* @param backplaneUser');
-  controller = controller.replaceAll(jsUserDocRegexp, '* @param user');
+      RegExp(r"@param\(\{\s*name\: 'authorization',\s*in: 'header',\s*required: true,\s*\}\) authorization: string");
+  controller = controller.replaceAll(authParamRegexp, '@inject(SecurityBindings.USER) user: BackplaneUserProfile');
 
   final jsAuthDocRegexp = RegExp(r'\* @param authorization\s+(?=\*)');
   controller = controller.replaceAll(jsAuthDocRegexp, '');
+
+  final tokenParamSpecRegexp = RegExp(r" *\{\s*name\: 'backplane-token',\s*in: 'header',\s*required: true,\s*},\s*");
+  controller = controller.replaceAll(tokenParamSpecRegexp, '');
+
+  final tokenParamRegexp = RegExp(
+      r"@param\(\{\s*name\: 'backplane-token',\s*in: 'header',\s*required: true,\s*\}\) backplaneToken: string,?");
+  controller = controller.replaceAll(tokenParamRegexp, '');
+
+  final jsTokenDocRegexp = RegExp(r'\* @param backplaneToken');
+  controller = controller.replaceAll(jsTokenDocRegexp, '* @param user');
 
   return controller;
 }
@@ -320,6 +323,6 @@ String connectController(String protectedController, String projectPath, String 
     return rematch[0]!.replaceFirst(
         rematch.namedGroup('body')!,
         '${rematch.namedGroup('userBody') ?? ''}return this.${serviceName.camelCase}.${rematch.namedGroup('function')}'
-        '(${params.join(', ').replaceFirst('user', 'userJwt, authorization')})');
+        '(${params.join(', ').replaceFirst('user', 'authorization, backplaneToken')})');
   });
 }
