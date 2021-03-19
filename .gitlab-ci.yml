@@ -1,4 +1,5 @@
 stages:
+  - test
   - compile
   - upload
   - release
@@ -6,6 +7,12 @@ stages:
 variables:
   BINARY: "integrate"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/integrator/${$CI_COMMIT_TAG}"
+
+test:
+  stage: test
+  script:
+    - 'echo "Commit tag: ${CI_COMMIT_TAG}"'
+    - 'echo "Build tag: ${CI_BUILD_TAG}"'
 
 compile:
   stage: compile
