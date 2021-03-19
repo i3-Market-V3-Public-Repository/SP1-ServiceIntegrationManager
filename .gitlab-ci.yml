@@ -1,0 +1,43 @@
+stages:
+  - compile
+  - upload
+  - release
+
+variables:
+  BINARY: "integrate"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/integrator_release/${$CI_COMMIT_TAG}"
+
+compile:
+  stage: compile
+  only:
+    - tags
+  image: google/dart:2.12
+  before_script:
+    - export PATH="$PATH":"~/.pub-cache/bin"
+    - pub get --no-precompile
+  script:
+    - mkdir artifacts
+    - dart compile exe ./bin/integrate.dart --output artifacts/${BINARY}
+  artifacts:
+    paths:
+      - artifacts/
+
+upload:
+  stage: upload
+  only:
+    - tags
+  image: curlimages/curl:latest
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file bin/integrate ${PACKAGE_REGISTRY_URL}/${BINARY}
+
+
+release:
+  stage: release
+  only:
+    - tags
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  script:
+    - |
+      release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+        --assets-link "{\"name\":\"${BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${BINARY}\"}" \
