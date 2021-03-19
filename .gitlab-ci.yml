@@ -1,0 +1,22 @@
+image: google/dart:2.12
+
+cache:
+  paths:
+    - .pub-cache/global_packages
+
+before_script:
+  - export PATH="$PATH":"~/.pub-cache/bin"
+  - pub get --no-precompile
+
+linux-compile:
+  stage: compile
+  script:
+    - dart compile exe ./bin/integrate.dart --output ./integrate
+
+linux-release:
+  stage: release
+  script:
+    - echo 'Release linux binary'
+  release:
+    tag_name: $CI_COMMIT_TAG
+    description: 'Linux release $CI_COMMIT_TAG'
