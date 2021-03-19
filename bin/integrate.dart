@@ -91,8 +91,7 @@ Future<File> getSpec(String projectPath, String serviceName) async {
           print('The OpenAPI spec must be in JSON format');
           continue;
         }
-        final filename = fileName;
-        specFile = File(filename)
+        specFile = File(fileName)
           ..createSync()
           ..writeAsStringSync(content);
       }
