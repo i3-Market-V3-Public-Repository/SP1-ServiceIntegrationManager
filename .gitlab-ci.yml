@@ -28,6 +28,8 @@ upload:
     - tags
   image: curlimages/curl:latest
   script:
+    - echo "artifacts/${BINARY}"
+    - echo "${PACKAGE_REGISTRY_URL}/${BINARY}"
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "artifacts/${BINARY}" "${PACKAGE_REGISTRY_URL}/${BINARY}"'
 
 
