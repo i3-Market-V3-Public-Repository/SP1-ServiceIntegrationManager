@@ -29,7 +29,7 @@ upload:
   image: curlimages/curl:latest
   script:
     - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file bin/integrate ${PACKAGE_REGISTRY_URL}/${BINARY}
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file artifacts/${BINARY} ${PACKAGE_REGISTRY_URL}/${BINARY}
 
 
 release:
