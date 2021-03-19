@@ -30,13 +30,12 @@ String askBasePath() {
 String askServiceNameAndOverwrite(String projectPath) {
   print('Enter the name of the service to be integrated (e.g. auditableAccounting):');
   final serviceName = (stdin.readLineSync() ?? '').paramCase;
-  final integratedServicesDirectory = Directory('$projectPath/integrated_services');
-  if (!integratedServicesDirectory.existsSync()) {
-    integratedServicesDirectory.createSync();
-    createSecret(projectPath, serviceName);
-  }
+  final integratedServicesDirectory = Directory('$projectPath/integrated_services')..createSync();
+  Directory('$projectPath/integrated_services/sources').createSync();
   final specFile = getFile(integratedServicesDirectory, serviceName);
-  if (specFile != null) {
+  if (specFile == null) {
+    createSecret(projectPath, serviceName);
+  } else {
     overwriteService(specFile, projectPath, serviceName);
   }
   return serviceName;
@@ -60,6 +59,7 @@ void overwriteService(File specFile, String projectPath, String serviceName) {
   final confirmation = {'y', 'yes'}.contains(stdin.readLineSync()?.toLowerCase());
   if (confirmation) {
     specFile.deleteSync();
+    File('${specFile.parent.path}/sources/$serviceName.json').deleteSync();
     Directory('$projectPath/src/controllers/$serviceName').deleteSync(recursive: true);
     Directory('$projectPath/src/datasources/$serviceName').deleteSync(recursive: true);
     Directory('$projectPath/src/models/$serviceName').deleteSync(recursive: true);
@@ -79,6 +79,8 @@ File? getFile(Directory directory, String filename) {
 
 Future<File> getSpec(String projectPath, String serviceName) async {
   File? specFile;
+  final fileName = '$projectPath/integrated_services/$serviceName.json';
+  final sourceName = '$projectPath/integrated_services/sources/$serviceName.json';
   do {
     print('Enter the OpenAPI (JSON) spec url or file path:');
     final specPath = stdin.readLineSync() ?? '';
@@ -89,7 +91,7 @@ Future<File> getSpec(String projectPath, String serviceName) async {
           print('The OpenAPI spec must be in JSON format');
           continue;
         }
-        final filename = '$projectPath/integrated_services/$serviceName.json';
+        final filename = fileName;
         specFile = File(filename)
           ..createSync()
           ..writeAsStringSync(content);
@@ -101,13 +103,14 @@ Future<File> getSpec(String projectPath, String serviceName) async {
           print('The OpenAPI spec must be in JSON format');
           continue;
         }
-        specFile = tempFile.copySync('$projectPath/integrated_services/$serviceName.json');
+        specFile = tempFile.copySync(fileName);
       } else {
         print('File not found');
       }
     }
   } while (specFile == null);
   print('Spec obtained');
+  specFile.copySync(sourceName);
   return specFile;
 }
 
@@ -266,11 +269,12 @@ String protectController(String controller) {
     }
   }
 
-  final authParamSpecRegexp = RegExp(r" *\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*},\s*");
+  final authParamSpecRegexp =
+      RegExp(r" *\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*},\s*");
   controller = controller.replaceAll(authParamSpecRegexp, '');
 
-  final authParamRegexp =
-      RegExp(r"@param\(\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*\}\) backplaneAuthorization: string");
+  final authParamRegexp = RegExp(
+      r"@param\(\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*\}\) backplaneAuthorization: string");
   controller = controller.replaceAll(authParamRegexp, '@inject(SecurityBindings.USER) user: BackplaneUserProfile');
 
   final jsAuthDocRegexp = RegExp(r'\* @param backplaneAuthorization\s+(?=\*)');
