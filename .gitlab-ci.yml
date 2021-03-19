@@ -7,9 +7,10 @@ variables:
   BINARY: "integrate"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/integrator_release/${$CI_COMMIT_TAG}"
 
-
 compile:
   stage: compile
+  only:
+    - master
   image: google/dart:2.12
   before_script:
     - export PATH="$PATH":"~/.pub-cache/bin"
@@ -23,9 +24,9 @@ compile:
 
 upload:
   stage: upload
+  only:
+    - master
   image: curlimages/curl:latest
-  rules:
-    - if: $CI_COMMIT_TAG
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file bin/integrate ${PACKAGE_REGISTRY_URL}/${BINARY}
@@ -33,9 +34,9 @@ upload:
 
 release:
   stage: release
+  only:
+    - master
   image: registry.gitlab.com/gitlab-org/release-cli:latest
-  rules:
-    - if: $CI_COMMIT_TAG
   script:
     - |
       release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
