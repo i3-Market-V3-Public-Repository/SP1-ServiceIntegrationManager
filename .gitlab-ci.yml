@@ -9,12 +9,12 @@ before_script:
   - pub get --no-precompile
 
 linux-compile:
-  stage: compile
+  stage: build
   script:
     - dart compile exe ./bin/integrate.dart --output ./integrate
 
 linux-release:
-  stage: release
+  stage: deploy
   script:
     - echo 'Release linux binary'
   release:
