@@ -11,6 +11,7 @@ void main(List<String> args) async {
 }
 
 Future<void> runBulkIntegration(String backplanePath, String specsPath) async {
+  File('$backplanePath/src/secrets.json').createSync();
   final specsDir = Directory(specsPath);
   final specs = specsDir
       .listSync(followLinks: false)
