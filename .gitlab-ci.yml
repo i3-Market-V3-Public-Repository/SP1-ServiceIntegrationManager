@@ -10,7 +10,7 @@ variables:
 compile:
   stage: compile
   only:
-    - master
+    - tags
   image: google/dart:2.12
   before_script:
     - export PATH="$PATH":"~/.pub-cache/bin"
@@ -25,7 +25,7 @@ compile:
 upload:
   stage: upload
   only:
-    - master
+    - tags
   image: curlimages/curl:latest
   script:
     - |
@@ -35,7 +35,7 @@ upload:
 release:
   stage: release
   only:
-    - master
+    - tags
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   script:
     - |
