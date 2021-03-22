@@ -17,6 +17,7 @@ void main(List<String> args) async {
 Future<void> runBulkIntegration(String backplanePath, String specsPath) async {
   final secretsFile = File('$backplanePath/.secrets.json');
   if (!secretsFile.existsSync()) {
+    print('New secret file created');
     secretsFile.writeAsStringSync('{}');
   }
   final secrets = jsonDecode(secretsFile.readAsStringSync()) as Map<String, dynamic>;
