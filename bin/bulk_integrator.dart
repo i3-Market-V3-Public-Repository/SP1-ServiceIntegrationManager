@@ -15,7 +15,10 @@ void main(List<String> args) async {
 }
 
 Future<void> runBulkIntegration(String backplanePath, String specsPath) async {
-  final secretsFile = File('$backplanePath/.secrets.json')..createSync();
+  final secretsFile = File('$backplanePath/.secrets.json');
+  if (!secretsFile.existsSync()) {
+    secretsFile.writeAsStringSync('{}');
+  }
   final secrets = jsonDecode(secretsFile.readAsStringSync()) as Map<String, dynamic>;
   final random = Random.secure();
   final specsDir = Directory(specsPath);
