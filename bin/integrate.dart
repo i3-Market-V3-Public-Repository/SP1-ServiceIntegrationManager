@@ -174,6 +174,10 @@ String runServiceCreation(String serviceName, String projectPath, File specFile)
   final result = Process.runSync('lb4', ['openapi', specFile.path, '--client', '--yes', '--datasource=$serviceName'],
       workingDirectory: projectPath, runInShell: true);
   final output = '${result.stdout}\n${result.stderr}';
+  print('Service creation stdout:');
+  print(result.stdout);
+  print('Service creation stderr:');
+  print(result.stderr);
   return output;
 }
 
