@@ -1,5 +1,9 @@
 # i3-Market Service Integration Manager
 
+## Prerequisites
+
+- Loopback 4 CLI
+
 ## Execution
 
 The manager can be run using [Dart](https://dart.dev) (available [here](https://dart.dev/get-dart)) or using the compiled executable

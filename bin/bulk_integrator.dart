@@ -64,6 +64,6 @@ void manageSecret(Map<String, dynamic> secrets, String serviceName, Random rando
 
 void printHelp() {
   print('Usage:\n'
-      '\tdart bulk_integrator.dart <Backplane path> <Spacs path>\n'
-      '\tbulk_integrator <Backplane path> <Spacs path>\n');
+      '\tdart bulk_integrator.dart <Backplane path> <Specs path>\n'
+      '\tbulk_integrator <Backplane path> <Specs path>\n');
 }
