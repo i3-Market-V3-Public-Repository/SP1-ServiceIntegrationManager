@@ -299,7 +299,7 @@ String protectController(String controller) {
 String connectController(String protectedController, String projectPath, String subsystemName) {
   String controller = protectedController;
   final controllerName = RegExp(r'export class (\w+) {').firstMatch(controller)![1]!;
-  final serviceName = controllerName.replaceAll('Controller', 'Service');
+  final serviceName = controllerName.replaceAll(RegExp(r'Controller$'), 'Service');
   final providerName = serviceName + 'Provider';
   controller = "import {$serviceName, $providerName} from '../../services';\n"
           "import {service} from '@loopback/core';\n" +
@@ -324,7 +324,7 @@ String connectController(String protectedController, String projectPath, String 
     final params = rematch
         .namedGroup('params')!
     // FIXME Can fail if parameter specification has the string '})' somewhere
-        .split(RegExp(r'@[\w\.]+\(\{.*?\}\)', dotAll: true))
+        .split(RegExp(r'@[\w\.]+\(\{?.*?(?:\}|USER)\)', dotAll: true))
         .where((element) => element.isNotEmpty)
         .map((e) => e.split(':').first.trim());
     return rematch[0]!.replaceFirst(
