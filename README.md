@@ -2,25 +2,67 @@
 
 ## Prerequisites
 
-- Loopback 4 CLI
+- Loopback 4 CLI  
+  Can be installed with `npm`:
+  ```shell
+  npm i -g @loopback/cli@2.15.1
+  ```
 
 ## Execution
 
-The manager can be run using [Dart](https://dart.dev) (available [here](https://dart.dev/get-dart)) or using the compiled executable
+The manager can be run using [Dart](https://dart.dev) (available [here](https://dart.dev/get-dart)) or with Docker.
 
 ### Running with Dart
 
-To run the manager using Dart, clone the project, and from the project root run the following commands:
+To run the manager using Dart, clone the project, and from the project root run the following command to get all the 
+necessary dependencies:
 
 ```shell script
 dart pub get
-dart .\bin\integrate.dart
 ```
+After that, you have 3 scripts available:
 
-Follow the prompted instructions to integrate a new service.
+- Interactive  
+  Integrates a single service interactively
+  ```shell
+  dart ./bin/integrate.dart
+  ```
+- Non-interactive  
+  Integrates a single service non-interactively (overriding if necessary)  
+  The name of the OAS file is taken as the service name (e.g. `auditableAccounting.json` &rarr; Auditable Accounting Service)
+  ```shell
+  dart ./bin/single_integrator.dart /path/to/backplane /path/to/spec.json
+  ```  
+- Non-interactive bulk  
+  Integrates several service non-interactively (overriding if necessary)  
+  All the JSON files in the given directory will be treated as OAS and integrated.  
+  The name of each OAS file is taken as the service name (e.g. `auditableAccounting.json` &rarr; Auditable Accounting Service)
+  ```shell
+  dart ./bin/bulk_integrator.dart /path/to/backplane /path/to/spec/directory
+  ```  
+  
 
-### Running the standalone executables
+### Running with Docker
 
-The standalone executables can be used without the need for installing Dart. To use it, just run it as any other executable and follow the instructions.
+A docker image of the integrator (single non-interactive) is provided to test the integration during subsystem development.
 
-Note that each executable only runs in the specified platform. If no executable is available for your platform, you will have to [run the manager with Dart](#running-with-dart)
+```shell
+docker login registry.gitlab.com
+docker run --pull -v /path/to/backplane:/backplane -v /path/to/spec.json:/serviceName.json registry.gitlab.com/i3-market/code/wp4/service-integration-manager:latest /serviceName.json
+```
+Note that 3 parts of the command have to be changed:  
+- Backplane volume (string after first `-v`)  
+  Change the first part (`/path/to/backplane`) with the actual path to backplane project (e.g. `C:/Development/i3Market/backplane:/backplane`)
+
+- Specification volume (string after second `-v`)  
+  Change the first part (`/path/to/spec.json`) with the actual path to the OAS file  (e.g. `C:/Development/i3Market/specs/greeter.json`)
+  Change the filename of the second part (`serviceName` in `/serviceName.json`) with the name of the service (e.g. `/greeter.json`)  
+  
+- Parameter (last string)  
+  Change with the second part of the specification volume (e.g. `/greeter.json`)
+
+Example:
+```shell
+docker login registry.gitlab.com
+docker run --pull -v C:/Development/i3Market/backplane:/backplane -v C:/Development/i3Market/specs/greeter.json:/greeter.json registry.gitlab.com/i3-market/code/wp4/service-integration-manager:latest /greeter.json
+```
