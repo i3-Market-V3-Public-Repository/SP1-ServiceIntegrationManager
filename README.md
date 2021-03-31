@@ -68,3 +68,14 @@ Example:
 docker login registry.gitlab.com
 docker run --pull -v C:/Development/i3Market/backplane:/backplane -v C:/Development/i3Market/specs/greeter.json:/greeter.json registry.gitlab.com/i3-market/code/wp4/service-integration-manager:latest /greeter.json
 ```
+
+## Troubleshooting
+
+This integrator is being developed, and, while it is stable now, it may break if faced with some corner cases.
+Although the integrator may not fail and finish normally, if you see some errors in the generated files or, for example
+the integrator logs lists fewer endpoints than expected, it will be most probably due to the integrator.   
+If you come across any problem, don't hesitate to contact us at:  
+
+- Juan Salmerón (juan.salmeron@upc.edu)
+
+- Víctor Diví (victor.divi@upc.edu)
