@@ -2,15 +2,17 @@
 
 ## Prerequisites
 
-- Loopback 4 CLI  
+- [Loopback 4](https://loopback.io/doc/en/lb4/) CLI  
   Can be installed with `npm`:
   ```shell
   npm i -g @loopback/cli@2.15.1
   ```
 
+- [Dart](https://dart.dev) or [Docker](https://www.docker.com/)
+
 ## Execution
 
-The manager can be run using [Dart](https://dart.dev) (available [here](https://dart.dev/get-dart)) or with Docker.
+The manager can be run using [Dart](https://dart.dev) (available [here](https://dart.dev/get-dart)) or with [Docker](https://www.docker.com/).
 
 ### Running with Dart
 
