@@ -240,10 +240,10 @@ String protectController(String controller) {
           "import {sign} from 'jsonwebtoken';\n" +
       controller;
   final operationRegexp = RegExp(
-      r"@operation\('(?<verb>\w+)', '(?<path>[\w\/?&%\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
+      r"@operation\('(?<verb>\w+)', '(?<path>[\w\/?&%\-\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
       r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s]+(\s*,\s*)?)*?)\): '
-      r"Promise<\w+> {\s+(?<body>throw new Error\('Not implemented'\);)",
+      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\]]+(\s*,\s*)?)*?)\): '
+      r"Promise<[\w\|\{\}\s\[\]]+> {\s+(?<body>throw new Error\('Not implemented'\);)",
       dotAll: true);
   for (final match in operationRegexp.allMatches(controller)) {
     final method = match.namedGroup('verb')!.toUpperCase();
@@ -315,15 +315,16 @@ String connectController(String protectedController, String projectPath, String 
   );
   final operationRegexp = RegExp(
       r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s]+(\s*,\s*)?)*?)\): '
-      r"Promise<\w+> {\s+(?<body>(?<userBody>.*?)?throw new Error\('Not implemented'\);)",
+      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\]]+(\s*,\s*)?)*?)\): '
+      r"Promise<[\w\|\{\}\s\[\]]+> {(?<body>(?<userBody>.*?)?throw new Error\('Not implemented'\);)",
       dotAll: true);
   print('\tNumber of endpoints: ${operationRegexp.allMatches(controller).length}');
   return controller.replaceAllMapped(operationRegexp, (match) {
     final rematch = match as RegExpMatch;
     final params = rematch
         .namedGroup('params')!
-        .split(RegExp(r'@[\w\.]+\(.*?\)', dotAll: true))
+    // FIXME Can fail if parameter specification has the string '})' somewhere
+        .split(RegExp(r'@[\w\.]+\(\{.*?\}\)', dotAll: true))
         .where((element) => element.isNotEmpty)
         .map((e) => e.split(':').first.trim());
     return rematch[0]!.replaceFirst(
