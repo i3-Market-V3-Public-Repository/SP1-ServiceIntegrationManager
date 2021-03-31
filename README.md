@@ -79,3 +79,5 @@ If you come across any problem, don't hesitate to contact us at:
 - Juan Salmerón (juan.salmeron@upc.edu)
 
 - Víctor Diví (victor.divi@upc.edu)
+
+- Marc Catrisse (marc.catrisse@upc.edu)
