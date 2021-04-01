@@ -10,6 +10,10 @@
 
 - [Dart](https://dart.dev) or [Docker](https://www.docker.com/)
 
+- [Backplane project](https://gitlab.com/i3-market/code/wp4/backplane)
+
+- OpenApi Specification of a Backplane subsystem
+
 ## Execution
 
 The manager can be run using [Dart](https://dart.dev) (available [here](https://dart.dev/get-dart)) or with [Docker](https://www.docker.com/).
