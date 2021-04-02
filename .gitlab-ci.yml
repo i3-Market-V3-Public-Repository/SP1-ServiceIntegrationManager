@@ -6,6 +6,7 @@ stages:
 variables:
   INTEGRATOR_BINARY: "integrator"
   BULK_INTEGRATOR_BINARY: "bulk_integrator"
+  SINGLE_INTEGRATOR_BINARY: "single_integrator"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/integrator/${CI_COMMIT_TAG}"
 
 compile:
@@ -20,25 +21,51 @@ compile:
     - mkdir artifacts
     - dart compile exe ./bin/integrate.dart --output artifacts/${INTEGRATOR_BINARY}
     - dart compile exe ./bin/bulk_integrator.dart --output artifacts/${BULK_INTEGRATOR_BINARY}
+    - dart compile exe ./bin/single_integrator.dart --output artifacts/${SINGLE_INTEGRATOR_BINARY}
   artifacts:
     paths:
       - artifacts/
 
+build:
+  stage: compile
+  only:
+    -  tags
+  image: docker:19.03.13
+  services:
+    - docker:19.03.13-dind
+  variables:
+    IMAGE_TAG_CURRENT: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    IMAGE_TAG_LATEST: $CI_REGISTRY_IMAGE:latest
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
+  script:
+    - docker build -t $IMAGE_TAG_CURRENT -t $IMAGE_TAG_LATEST .
+    - docker push $IMAGE_TAG_CURRENT
+    - docker push $IMAGE_TAG_LATEST
+
+
 upload:
   stage: upload
+  needs:
+    - compile
   only:
     - tags
   image: curlimages/curl:latest
   script:
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "artifacts/${INTEGRATOR_BINARY}" "${PACKAGE_REGISTRY_URL}/${INTEGRATOR_BINARY}"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "artifacts/${BULK_INTEGRATOR_BINARY}" "${PACKAGE_REGISTRY_URL}/${BULK_INTEGRATOR_BINARY}"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "artifacts/${SINGLE_INTEGRATOR_BINARY}" "${PACKAGE_REGISTRY_URL}/${SINGLE_INTEGRATOR_BINARY}"'
 
 release:
   stage: release
+  needs:
+    - upload
   only:
     - tags
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   script:
     - 'release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG
     --assets-link "{\"name\":\"${INTEGRATOR_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${INTEGRATOR_BINARY}\"}"
+    --assets-link "{\"name\":\"${SINGLE_INTEGRATOR_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${SINGLE_INTEGRATOR_BINARY}\"}"
     --assets-link "{\"name\":\"${BULK_INTEGRATOR_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${BULK_INTEGRATOR_BINARY}\"}"'
