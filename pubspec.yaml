@@ -10,8 +10,10 @@ dependencies:
   path: ^1.8.0
   validators2: ^3.0.0
   recase: ^4.0.0-nullsafety.0
-  http: ^0.13.0
+  http: ^0.13.1
   yaml: ^3.1.0
+  petitparser: ^4.1.0
+
 
 dev_dependencies:
   pedantic: ^1.11.0
