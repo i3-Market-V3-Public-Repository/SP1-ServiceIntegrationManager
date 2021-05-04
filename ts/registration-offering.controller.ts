@@ -102,7 +102,7 @@
             type: 'integer',
             format: 'int32',
         },
-    }) page: number | undefined, @param({
+    }) page: number, @param({
         name: 'size',
         in: 'query',
         description: 'Size of a page',
@@ -111,7 +111,7 @@
             type: 'integer',
             format: 'int32',
         },
-    }) size: number | undefined, @param({
+    }) size: number, @param({
         name: 'sort',
         in: 'query',
         description: 'Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.',
@@ -123,7 +123,6 @@
                 type: 'string',
             },
         },
-    }) sort: string[] | undefined): Promise<RegistrationOfferingDto> {
+    }) sort: string): Promise<RegistrationOfferingDto> {
         throw new Error('Not implemented');
     }
-]

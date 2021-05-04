@@ -3,7 +3,7 @@ import 'package:petitparser/petitparser.dart';
 class Lb4ControllerDefinition extends GrammarDefinition {
   @override
   //TODO: implement
-  Parser start() => ref0(classMethod).end();
+  Parser start() => (ref0(classMethod)).end();
 
   Parser topLevelStatement() => ref0(wsOpt) & ref0(importSection) & ref0(wsOpt) & ref0(classDefinition) & ref0(wsOpt);
 
@@ -63,24 +63,38 @@ class Lb4ControllerDefinition extends GrammarDefinition {
 
   Parser parameterList() => ref0(parameter).separatedBy(ref0(comma), optionalSeparatorAtEnd: true).optional();
 
-  Parser parameter() => ref0(annotation) & ref0(identifier) & ref0(colon) & ref0(type);
+  Parser parameter() => ref0(annotation).optional() & ref0(identifier) & ref0(colon) & ref0(type);
 
-  Parser type() =>
-      (ref0(lParen) & ref0(type) & ref0(rParen)) |
-      ref0(unionType) |
-      ref0(genericType) |
+  Parser type() => ref0(primaryOrUnionType)/* | ref0(functionType) | ref0(constructorType)*/;
+
+  Parser primaryOrUnionType() => ref0(primaryType) | ref0(unionType);
+
+  Parser unionType() => ref0(primaryOrUnionType) & ref0(bar) & ref0(primaryType);
+
+  Parser primaryType() =>
+      ref0(parenthesizedType) |
       ref0(arrayType) |
-      ref0(identifier);
+      ref0(predefinedType) |
+      ref0(typeReference);
+      // ref0(objectType) |
+      // ref0(tupleType) |
+      // ref0(typeQuery);
 
-  Parser unionType() => (ref0(genericType) | ref0(arrayType) | ref0(identifier)).separatedBy(ref0(bar));
+  Parser parenthesizedType() => ref0(lParen) & ref0(type) & ref0(rParen);
 
-  Parser genericType() =>
-      ref0(identifier) &
-      ref0(lAngleBracket) &
-      ref0(type).separatedBy(ref0(comma), optionalSeparatorAtEnd: true) &
-      ref0(rAngleBracket);
+  Parser predefinedType() => string('any') | string('number') | string('boolean') | string('string') | string('void');
 
-  Parser arrayType() => ref0(type) & ref0(lBrace) & ref0(rBrace);
+  Parser typeReference() => ref0(typeName) & ref0(typeArguments).optional();
+
+  Parser typeArguments() => ref0(lAngleBracket) & ref0(typeArgumentList) & ref0(rAngleBracket);
+
+  Parser typeArgumentList() => ref0(type) | ref0(typeArgumentList) & ref0(comma) & ref0(type);
+
+  Parser typeName() => ref0(identifier) | (ref0(moduleName) & char('.') & ref0(identifier));
+
+  Parser moduleName() => ref0(identifier) | (ref0(moduleName) & char('.') & ref0(identifier));
+
+  Parser arrayType() => ref0(primaryType) & ref0(lBracket) & ref0(rBracket);
 
   Parser methodBody() => string("throw new Error('Not implemented');");
 
