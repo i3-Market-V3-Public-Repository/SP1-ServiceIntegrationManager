@@ -146,7 +146,7 @@ void modifySpec(File specFile) {
       }
     }
   }
-  (content['components'] as Map).remove('securitySchemes');
+  (content['components'] as Map?)?.remove('securitySchemes');
   specFile.writeAsStringSync(JsonEncoder.withIndent('  ').convert(content));
 }
 
