@@ -264,7 +264,7 @@ String protectController(String controller) {
       final body = match.namedGroup('body')!;
       endpoint = endpoint.replaceAll(
           body,
-          'const backplaneAuthorization = `Bearer \${sign(user, this.secret)}`;\n'
+          'const backplaneAuthorization = `\${sign(user, this.secret)}`;\n'
           "    const backplaneToken = this.request.headers['authorization']!;\n"
           '    $body');
       controller = controller.replaceFirst(match[0]!, endpoint);
