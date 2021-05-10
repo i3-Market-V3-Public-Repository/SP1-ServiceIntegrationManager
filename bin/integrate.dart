@@ -226,7 +226,8 @@ void finishControllers(String projectPath, String serviceName) {
     final controller = controllerFile.readAsStringSync();
     final protectedController = protectController(controller);
     final connectedController = connectController(protectedController, projectPath, serviceName);
-    controllerFile.writeAsStringSync(connectedController);
+    final finishedController = removeRequestBodyRefs(connectedController);
+    controllerFile.writeAsStringSync(finishedController);
   }
 }
 
@@ -324,7 +325,7 @@ String connectController(String protectedController, String projectPath, String 
     final rematch = match as RegExpMatch;
     final params = rematch
         .namedGroup('params')!
-    // FIXME Can fail if parameter specification has the string '})' somewhere
+        // FIXME Can fail if parameter specification has the string '})' somewhere
         .split(RegExp(r'@[\w\.]+\(\{?.*?(?:\}|USER)\)', dotAll: true))
         .where((element) => element.isNotEmpty)
         .map((e) => e.split(':').first.trim());
@@ -333,4 +334,9 @@ String connectController(String protectedController, String projectPath, String 
         '${rematch.namedGroup('userBody') ?? ''}return this.${serviceName.camelCase}.${rematch.namedGroup('function')}'
         '(${params.join(', ').replaceFirst('user', 'backplaneAuthorization, backplaneToken')})');
   });
+}
+
+String removeRequestBodyRefs(String controller) {
+  final requestBodyRefRegexp = RegExp(r"@requestBody\(\s*\{\s*\$ref: '#\/components\/requestBodies\/DataOffering',?\s*\}\s*\)", );
+  return controller.replaceAll(requestBodyRefRegexp, '@requestBody()');
 }
