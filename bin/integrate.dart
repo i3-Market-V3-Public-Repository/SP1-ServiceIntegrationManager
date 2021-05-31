@@ -146,7 +146,6 @@ void modifySpec(File specFile) {
       }
     }
   }
-  (content['components'] as Map?)?.remove('securitySchemes');
   specFile.writeAsStringSync(JsonEncoder.withIndent('  ').convert(content));
 }
 
@@ -224,14 +223,14 @@ void finishControllers(String projectPath, String serviceName) {
   for (final controllerFile in controllers) {
     print('Finishing controller ${basename(controllerFile.path)}');
     final controller = controllerFile.readAsStringSync();
-    final protectedController = protectController(controller);
+    final protectedController = protectController(serviceName, controller);
     final connectedController = connectController(protectedController, projectPath, serviceName);
     final finishedController = removeRequestBodyRefs(connectedController);
     controllerFile.writeAsStringSync(finishedController);
   }
 }
 
-String protectController(String controller) {
+String protectController(String serviceName, String controller) {
   controller = "import {authenticate} from '@loopback/authentication';\n"
           "import {authorize} from '@loopback/authorization';\n"
           "import {JWT_STRATEGY_NAME} from '../../auth/jwt.strategy';\n"
@@ -249,14 +248,16 @@ String protectController(String controller) {
       dotAll: true);
   for (final match in operationRegexp.allMatches(controller)) {
     final method = match.namedGroup('verb')!.toUpperCase();
-    final path = match.namedGroup('path');
+    final path = match.namedGroup('path')!;
+    final newPath = '/$serviceName$path';
     final spec = loadYaml(match.namedGroup('spec')!) as Map;
     final security = spec['security'] as List?;
     var endpoint = match[0]!;
+    endpoint = endpoint.replaceAll(path, newPath);
     if (security != null) {
       final scopes =
           (security.firstWhere((element) => (element as Map).containsKey('openIdConnect'))['openIdConnect'] as List);
-      print('\t$method: $path Scopes: $scopes');
+      print('\t$method: $path -> $newPath || Scopes: $scopes');
       endpoint = endpoint.replaceFirst('async', '@authenticate(JWT_STRATEGY_NAME)\n  async');
       if (scopes.isNotEmpty) {
         final scopesString = jsonEncode(scopes).replaceAll('"', "'");
@@ -270,7 +271,7 @@ String protectController(String controller) {
           '    $body');
       controller = controller.replaceFirst(match[0]!, endpoint);
     } else {
-      print('\t$method: $path No security');
+      print('\t$method: $path -> $newPath || No security');
     }
   }
 
