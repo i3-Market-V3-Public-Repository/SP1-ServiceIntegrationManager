@@ -269,10 +269,10 @@ String protectController(String serviceName, String controller) {
           'const backplaneAuthorization = `\${sign(user, this.secret)}`;\n'
           "    const backplaneToken = this.request.headers['authorization']!;\n"
           '    $body');
-      controller = controller.replaceFirst(match[0]!, endpoint);
     } else {
       print('\t$method: $path -> $newPath || No security');
     }
+    controller = controller.replaceFirst(match[0]!, endpoint);
   }
 
   final authParamSpecRegexp =
