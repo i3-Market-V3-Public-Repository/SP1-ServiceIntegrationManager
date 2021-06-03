@@ -183,14 +183,18 @@ String runServiceCreation(String serviceName, String projectPath, File specFile)
 
 Map<String, String> moveFiles(String output, String projectPath, String serviceName) {
   final pathMapper = <String, String>{};
-  final regexp = RegExp(r'create (?<path>src[\\/](?<folder>[a-z]+)[\\/](?<file>[a-z\-]+\.[a-z]+\.ts))');
+  final regexp = RegExp(r'create (?<path>src[\\/](?<folder>[a-z]+)[\\/](?<file>[\w\-]+\.[a-z]+\.ts))');
   final matches = regexp.allMatches(output);
   for (final match in matches) {
     String fromPath = '$projectPath/${match.namedGroup('path')}';
+    if (match.namedGroup('path')!.contains('with-relations')) {
+      File(fromPath).deleteSync();
+      continue;
+    }
     String toPath = '$projectPath/src/${match.namedGroup('folder')}/$serviceName/${match.namedGroup('file')}';
     final file = File(fromPath).renameSync(toPath);
     String content = file.readAsStringSync().replaceAll('../', '../../');
-    final modelsRegexp = RegExp(r'/models/[a-z\-\.]*');
+    final modelsRegexp = RegExp(r'/models/[\w\-\.]*');
     content = content.replaceAll(modelsRegexp, '/models');
     file.writeAsStringSync(content);
     fromPath = fromPath.replaceAll(r'\', '/');
@@ -222,7 +226,7 @@ void finishControllers(String projectPath, String serviceName) {
   final controllers = Directory('$projectPath/src/controllers/$serviceName').listSync().whereType<File>();
   for (final controllerFile in controllers) {
     print('Finishing controller ${basename(controllerFile.path)}');
-    final controller = controllerFile.readAsStringSync();
+    final controller = controllerFile.readAsStringSync().replaceAll(RegExp(r'//.*'), '');
     final protectedController = protectController(serviceName, controller);
     final connectedController = connectController(protectedController, projectPath, serviceName);
     final finishedController = removeRequestBodyRefs(connectedController);
@@ -243,7 +247,7 @@ String protectController(String serviceName, String controller) {
   final operationRegexp = RegExp(
       r"@operation\('(?<verb>\w+)', '(?<path>[\w\/?&%\-\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
       r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\]]+(\s*,\s*)?)*?)\): '
+      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:]+(\s*,\s*)?)*?)\): '
       //FIXME Can fail if promised object contains "
       r"Promise<[\w\|\{\}\s\[\]\?\:\;']+> {\s+(?<body>throw new Error\('Not implemented'\);)",
       dotAll: true);
@@ -319,8 +323,8 @@ String connectController(String protectedController, String projectPath, String 
   );
   final operationRegexp = RegExp(
       r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\]]+(\s*,\s*)?)*?)\): '
-      r"Promise<[\w\|\{\}\s\[\]]+> {(?<body>(?<userBody>.*?)?throw new Error\('Not implemented'\);)",
+      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:]+(\s*,\s*)?)*?)\): '
+      r"Promise<[\w\|\{\}\s\[\]\?\:\;']+> {(?<body>(?<userBody>.*?)?throw new Error\('Not implemented'\);)",
       dotAll: true);
   print('\tNumber of endpoints: ${operationRegexp.allMatches(controller).length}');
   return controller.replaceAllMapped(operationRegexp, (match) {
@@ -339,6 +343,8 @@ String connectController(String protectedController, String projectPath, String 
 }
 
 String removeRequestBodyRefs(String controller) {
-  final requestBodyRefRegexp = RegExp(r"@requestBody\(\s*\{\s*\$ref: '#\/components\/requestBodies\/DataOffering',?\s*\}\s*\)", );
+  final requestBodyRefRegexp = RegExp(
+    r"@requestBody\(\s*\{\s*\$ref: '#\/components\/requestBodies\/DataOffering',?\s*\}\s*\)",
+  );
   return controller.replaceAll(requestBodyRefRegexp, '@requestBody()');
 }
