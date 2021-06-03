@@ -29,7 +29,7 @@ String askBasePath() {
 
 String askServiceNameAndOverwrite(String projectPath) {
   print('Enter the name of the service to be integrated (e.g. auditableAccounting):');
-  final serviceName = (stdin.readLineSync() ?? '').paramCase;
+  final serviceName = (stdin.readLineSync() ?? '').camelCase;
   final integratedServicesDirectory = Directory('$projectPath/integrated_services')..createSync();
   Directory('$projectPath/integrated_services/sources').createSync();
   final specFile = getFile(integratedServicesDirectory, serviceName);
