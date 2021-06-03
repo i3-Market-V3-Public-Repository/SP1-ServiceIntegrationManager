@@ -244,7 +244,8 @@ String protectController(String serviceName, String controller) {
       r"@operation\('(?<verb>\w+)', '(?<path>[\w\/?&%\-\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
       r'async (?<function>\w+)'
       r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\]]+(\s*,\s*)?)*?)\): '
-      r"Promise<[\w\|\{\}\s\[\]]+> {\s+(?<body>throw new Error\('Not implemented'\);)",
+      //FIXME Can fail if promised object contains "
+      r"Promise<[\w\|\{\}\s\[\]\?\:\;']+> {\s+(?<body>throw new Error\('Not implemented'\);)",
       dotAll: true);
   for (final match in operationRegexp.allMatches(controller)) {
     final method = match.namedGroup('verb')!.toUpperCase();
