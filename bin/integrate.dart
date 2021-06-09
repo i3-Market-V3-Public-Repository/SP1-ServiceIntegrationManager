@@ -236,7 +236,7 @@ void finishControllers(String projectPath, String serviceName) {
   final controllers = Directory('$projectPath/src/controllers/$serviceName').listSync().whereType<File>();
   for (final controllerFile in controllers) {
     print('Finishing controller ${basename(controllerFile.path)}');
-    final controller = controllerFile.readAsStringSync().replaceAll(RegExp(r'//.*'), '');
+    final controller = controllerFile.readAsStringSync().replaceAll(RegExp(r'^\s*//.*'), '');
     final protectedController = protectController(serviceName, controller);
     final connectedController = connectController(protectedController, projectPath, serviceName);
     final finishedController = removeRequestBodyRefs(connectedController);
