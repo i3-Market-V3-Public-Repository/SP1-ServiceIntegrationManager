@@ -144,8 +144,14 @@ void modifySpec(File specFile) {
           metadata.update('parameters', (value) => (value as List)..insertAll(0, newParams), ifAbsent: () => newParams);
         }
       }
+      if (!metadata.containsKey('operationId')) {
+        final pathParts = path.split('/').map((e) =>
+            e.startsWith('{') && e.endsWith('}') ? 'By${e.substring(1, e.length - 1).pascalCase}' : e.pascalCase);
+        metadata['operationId'] = '${method.toLowerCase()}${pathParts.join()}';
+      }
     }
   }
+
   specFile.writeAsStringSync(JsonEncoder.withIndent('  ').convert(content));
 }
 
@@ -171,8 +177,12 @@ void createServiceDirectories(String projectPath, String serviceName) {
 }
 
 String runServiceCreation(String serviceName, String projectPath, File specFile) {
-  final result = Process.runSync('lb4', ['openapi', specFile.path, '--client', '--yes', '--datasource=$serviceName'],
-      workingDirectory: projectPath, runInShell: true);
+  final result = Process.runSync(
+    'lb4',
+    ['openapi', canonicalize(specFile.path), '--client', '--yes', '--datasource=$serviceName'],
+    workingDirectory: projectPath,
+    runInShell: true,
+  );
   final output = '${result.stdout}\n${result.stderr}';
   print('Service creation stdout:');
   print(result.stdout);
