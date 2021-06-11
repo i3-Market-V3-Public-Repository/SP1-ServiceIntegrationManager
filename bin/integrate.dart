@@ -164,6 +164,8 @@ void integrateService(String projectPath, String serviceName, File specFile) {
   moveFiles(output, projectPath, serviceName);
   print('Remaking indices');
   remakeIndices(projectPath);
+  print('Adding logs to Datasources');
+  addLogs(projectPath, serviceName);
   print('Finishing controllers');
   finishControllers(projectPath, serviceName);
 }
@@ -229,6 +231,19 @@ void remakeIndices(String projectPath) {
       }
     }
     indexFile.writeAsStringSync(contents);
+  }
+}
+
+void addLogs(String projectPath, String serviceName) {
+  final datasources = Directory('$projectPath/src/datasources/$serviceName').listSync().whereType<File>();
+  for (final datasource in datasources) {
+    print('\tAdding logs to ${basename(datasource.path)}');
+    final content = datasource.readAsLinesSync();
+    final index = content.indexWhere((element) => element.contains('if (response.status < 400) {'));
+    if (index == -1) continue;
+    content.insert(index,
+        r"  console.log(`Request redirect to -> ${response.method ?? ''}${response.url} => ${response.status} ${response.statusText}`);");
+    datasource.writeAsStringSync(content.join('\n'));
   }
 }
 
