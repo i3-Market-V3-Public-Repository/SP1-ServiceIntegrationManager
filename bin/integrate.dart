@@ -59,12 +59,25 @@ void overwriteService(File specFile, String projectPath, String serviceName) {
   final confirmation = {'y', 'yes'}.contains(stdin.readLineSync()?.toLowerCase());
   if (confirmation) {
     specFile.deleteSync();
-    File('${specFile.parent.path}/sources/$serviceName.json').deleteSync();
-    Directory('$projectPath/src/controllers/$serviceName').deleteSync(recursive: true);
-    Directory('$projectPath/src/datasources/$serviceName').deleteSync(recursive: true);
-    Directory('$projectPath/src/models/$serviceName').deleteSync(recursive: true);
-    Directory('$projectPath/src/repositories/$serviceName').deleteSync(recursive: true);
-    Directory('$projectPath/src/services/$serviceName').deleteSync(recursive: true);
+    try {
+      File('${specFile.parent.path}/sources/$serviceName.json').deleteSync();
+    } catch (_) {
+      print('Error deleting OAS');
+    }
+    final dirs = [
+      '$projectPath/src/controllers/$serviceName',
+      '$projectPath/src/datasources/$serviceName',
+      '$projectPath/src/models/$serviceName',
+      '$projectPath/src/repositories/$serviceName',
+      '$projectPath/src/services/$serviceName',
+    ];
+    for (final dir in dirs) {
+      try {
+        Directory(dir).deleteSync(recursive: true);
+      } catch (_) {
+        print('Error deleting $dir');
+      }
+    }
   } else {
     exit(1);
   }
@@ -131,6 +144,8 @@ void modifySpec(File specFile) {
   for (final path in paths.keys) {
     final endpoint = paths[path] as Map<String, dynamic>;
     for (final method in endpoint.keys) {
+      const acceptedMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
+      if (!acceptedMethods.contains(method.toLowerCase())) continue;
       final metadata = endpoint[method] as Map<String, dynamic>;
       if (metadata.containsKey('security')) {
         final securitySchemas = metadata['security'] as List;
@@ -348,7 +363,7 @@ String connectController(String protectedController, String projectPath, String 
   );
   final operationRegexp = RegExp(
       r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:]+(\s*,\s*)?)*?)\): '
+      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:?]+(\s*,\s*)?)*?)\): '
       r"Promise<[\w\|\{\}\s\[\]\?\:\;']+> {(?<body>(?<userBody>.*?)?throw new Error\('Not implemented'\);)",
       dotAll: true);
   print('\tNumber of endpoints: ${operationRegexp.allMatches(controller).length}');
