@@ -287,7 +287,7 @@ String protectController(String serviceName, String controller) {
   final operationRegexp = RegExp(
       r"@operation\('(?<verb>\w+)', '(?<path>[\w\/?&%\-\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
       r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:]+(\s*,\s*)?)*?)\): '
+      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:?]+(\s*,\s*)?)*?)\): '
       //FIXME Can fail if promised object contains "
       r"Promise<[\w\|\{\}\s\[\]\?\:\;']+> {\s+(?<body>throw new Error\('Not implemented'\);)",
       dotAll: true);
@@ -311,7 +311,7 @@ String protectController(String serviceName, String controller) {
       final body = match.namedGroup('body')!;
       endpoint = endpoint.replaceAll(
           body,
-          'const backplaneAuthorization = `\${sign(user, this.secret)}`;\n'
+          'const backplaneAuthorization = `\${sign(backplaneUserProfile, this.secret)}`;\n'
           "    const backplaneToken = this.request.headers['authorization']!;\n"
           '    $body');
     } else {
@@ -326,7 +326,7 @@ String protectController(String serviceName, String controller) {
 
   final authParamRegexp = RegExp(
       r"@param\(\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*\}\) backplaneAuthorization: string");
-  controller = controller.replaceAll(authParamRegexp, '@inject(SecurityBindings.USER) user: BackplaneUserProfile');
+  controller = controller.replaceAll(authParamRegexp, '@inject(SecurityBindings.USER) backplaneUserProfile: BackplaneUserProfile');
 
   final jsAuthDocRegexp = RegExp(r'\* @param backplaneAuthorization\s+(?=\*)');
   controller = controller.replaceAll(jsAuthDocRegexp, '');
@@ -339,7 +339,7 @@ String protectController(String serviceName, String controller) {
   controller = controller.replaceAll(tokenParamRegexp, '');
 
   final jsTokenDocRegexp = RegExp(r'\* @param backplaneToken');
-  controller = controller.replaceAll(jsTokenDocRegexp, '* @param user');
+  controller = controller.replaceAll(jsTokenDocRegexp, '* @param backplaneUserProfile');
 
   return controller;
 }
@@ -378,7 +378,7 @@ String connectController(String protectedController, String projectPath, String 
     return rematch[0]!.replaceFirst(
         rematch.namedGroup('body')!,
         '${rematch.namedGroup('userBody') ?? ''}return this.${serviceName.camelCase}.${rematch.namedGroup('function')}'
-        '(${params.join(', ').replaceFirst('user', 'backplaneAuthorization, backplaneToken')})');
+        '(${params.join(', ').replaceFirst('backplaneUserProfile', 'backplaneAuthorization, backplaneToken')})');
   });
 }
 
