@@ -287,7 +287,7 @@ String protectController(String serviceName, String controller) {
   final operationRegexp = RegExp(
       r"@operation\('(?<verb>\w+)', '(?<path>[\w\/?&%\-\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
       r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:]+(\s*,\s*)?)*?)\): '
+      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:?]+(\s*,\s*)?)*?)\): '
       //FIXME Can fail if promised object contains "
       r"Promise<[\w\|\{\}\s\[\]\?\:\;']+> {\s+(?<body>throw new Error\('Not implemented'\);)",
       dotAll: true);
