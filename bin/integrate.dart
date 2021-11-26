@@ -181,6 +181,8 @@ void integrateService(String projectPath, String serviceName, File specFile) {
   remakeIndices(projectPath);
   print('Adding logs to Datasources');
   addLogs(projectPath, serviceName);
+  print('Customize Datasources');
+  customizeDatasources(projectPath, serviceName);
   print('Finishing controllers');
   finishControllers(projectPath, serviceName);
 }
@@ -258,6 +260,28 @@ void addLogs(String projectPath, String serviceName) {
     if (index == -1) continue;
     content.insert(index,
         r"  console.log(`Request redirect to -> ${response.method ?? ''}${response.url} => ${response.status} ${response.statusText}`);");
+    datasource.writeAsStringSync(content.join('\n'));
+  }
+}
+
+//Customize object return of datasources transformResponse function, encapsulates response
+void customizeDatasources(String projectPath, String serviceName) {
+  final datasources = Directory('$projectPath/src/datasources/$serviceName').listSync().whereType<File>();
+  for (final datasource in datasources) {
+    print('\tCustomizing datasource -> ${basename(datasource.path)}');
+    final content = datasource.readAsLinesSync();
+    final index = content.indexWhere((element) => element.contains('if (response.status < 400) {'));
+    if (index == -1) continue;
+    final indexEnd = content.indexWhere((element) => element == '  }', index);
+    if (indexEnd == -1) continue;
+    for(var i = index+1; i < indexEnd; i++) { //in case there exists more than one line (it shouldn't)
+      final operationRegexp = RegExp(r'return (.*);');
+      if (operationRegexp.hasMatch(content.elementAt(i))){ // found, replace return
+        final itemToReturn = operationRegexp.firstMatch(content.elementAt(i))?.group(1);
+        final newLine = '   return {isOpenApi: true, headers: response.headers, value: ($itemToReturn)};';
+        content[i] = newLine;
+      }
+    }
     datasource.writeAsStringSync(content.join('\n'));
   }
 }
