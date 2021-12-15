@@ -1,20 +1,40 @@
-# i3-Market Service Integration Manager
+<!---
+#  Copyright 2020-2022 i3-MARKET Consortium:
+#
+#  ATHENS UNIVERSITY OF ECONOMICS AND BUSINESS - RESEARCH CENTER
+#  ATOS SPAIN SA
+#  EUROPEAN DIGITAL SME ALLIANCE
+#  GFT ITALIA SRL
+#  GUARDTIME OU
+#  HOP UBIQUITOUS SL
+#  IBM RESEARCH GMBH
+#  IDEMIA FRANCE
+#  SIEMENS AKTIENGESELLSCHAFT
+#  SIEMENS SRL
+#  TELESTO TECHNOLOGIES PLIROFORIKIS KAI EPIKOINONION EPE
+#  UNIVERSITAT POLITECNICA DE CATALUNYA
+#  UNPARALLEL INNOVATION LDA
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+-->
 
-## Prerequisites
+# i3-MARKET Service Integration Manager
 
-- [Loopback 4](https://loopback.io/doc/en/lb4/) CLI  
-  Can be installed with `npm`:
-  ```shell
-  npm i -g @loopback/cli@2.15.1
-  ```
+This software integrates the described services of many OAS files into a single i3-MARKET Backplane API 
 
-- [Dart](https://dart.dev) or [Docker](https://www.docker.com/)
+## Getting started / Use
 
-- [Backplane project](https://gitlab.com/i3-market/code/wp4/backplane)
-
-- OpenApi Specification of a Backplane subsystem
-
-## Execution
 
 The manager can be run using [Dart](https://dart.dev) (available [here](https://dart.dev/get-dart)) or with [Docker](https://www.docker.com/).
 
@@ -73,15 +93,42 @@ docker login registry.gitlab.com
 docker run --pull -v C:/Development/i3Market/backplane:/backplane -v C:/Development/i3Market/specs/greeter.json:/greeter.json registry.gitlab.com/i3-market/code/wp4/service-integration-manager:latest /greeter.json
 ```
 
-## Troubleshooting
+## How to build, install, or deploy it
+
+### Prerequisites
+
+- [Loopback 4](https://loopback.io/doc/en/lb4/) CLI  
+  Can be installed with `npm`:
+  ```shell
+  npm i -g @loopback/cli@2.15.1
+  ```
+
+- [Dart](https://dart.dev) or [Docker](https://www.docker.com/)
+
+- [Backplane project](https://gitlab.com/i3-market/code/wp4/backplane)
+
+- OpenApi Specification of a Backplane subsystem
+
+
+## Further Information
 
 This integrator is being developed, and, while it is stable now, it may break if faced with some corner cases.
 Although the integrator may not fail and finish normally, if you see some errors in the generated files or, for example
 the integrator logs lists fewer endpoints than expected, it will be most probably due to the integrator.   
-If you come across any problem, don't hesitate to contact us at:  
+If you come across any problem, don't hesitate to open an issue.
 
-- Juan Salmerón (juan.salmeron@upc.edu)
+## Contributing
 
-- Víctor Diví (victor.divi@upc.edu)
 
-- Marc Catrisse (marc.catrisse@upc.edu)
+## License
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
