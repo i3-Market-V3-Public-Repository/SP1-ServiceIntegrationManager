@@ -1,0 +1,1556 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"description": "i3market API documentation",
+		"version": "0.0.1",
+		"title": "i3market API",
+		"contact": {},		"license": {
+			"name": "unlicensed"
+		}
+	},
+	"host": "95.211.3.249:8585",
+	"basePath": "/",
+	"tags": [{
+		"name": "registration-offering",
+		"description": "Registration Offering"
+	}],
+	"paths": {
+		"/api/registration": {
+			"post": {
+				"tags": ["registration-offering"],
+				"summary": "register provider info",
+				"operationId": "saveDataProviderUsingPOST",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"in": "body",
+					"name": "dataProviderTemplate",
+					"description": "dataProviderTemplate",
+					"required": true,
+					"schema": {
+						"$ref": "#/definitions/DataProvider"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "OK"
+					},
+					"201": {
+						"description": "Created"
+					},
+					"400": {
+						"description": "failed to save provider information"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},		
+		"/api/registration/categories-list": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get a list of all categories",
+				"operationId": "getCategoriesListUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "sort",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+					"required": false,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/CategoriesList"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "failed to get list of categories"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/data-offering": {
+			"post": {
+				"tags": ["registration-offering"],
+				"summary": "register a data offering",
+				"operationId": "dataOfferingUsingPOST",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"in": "body",
+					"name": "dataOffering",
+					"description": "dataOffering",
+					"required": true,
+					"schema": {
+						"$ref": "#/definitions/DataOffering"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/DataOfferingId"
+							}
+						}
+					},
+					"201": {
+						"description": "Created"
+					},
+					"400": {
+						"description": "failed to save offerings"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		
+		"/api/registration/delete-offering/{id}": {
+			"delete": {
+				"tags": ["registration-offering"],
+				"summary": "delete a data offering",
+				"operationId": "deleteOfferingUsingDELETE",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "id",
+					"in": "path",
+					"description": "id",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK"
+					},
+					"204": {
+						"description": "No Content"
+					},
+					"400": {
+						"description": "failed to delete an offerings by id"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/offering/offering-template": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "download offering template",
+				"operationId": "getOfferingTemplateUsingGET",
+				"produces": ["*/*"],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "string"
+						}
+					},
+					"400": {
+						"description": "internal server error to create template"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/offering/{category}": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get a registered data offerings by category",
+				"operationId": "getAllRegisteredOfferingsByCategoryUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "category",
+					"in": "path",
+					"description": "category",
+					"required": true,
+					"type": "string"
+				}, {
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "sort",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+					"required": false,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/DataOfferingDto"
+							}
+						}
+					},
+					"400": {
+						"description": "failed to get offerings by category"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/offering/provider/{providerId}": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "Get data provider by providerId",
+				"operationId": "getDataProviderByProviderIdUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "providerId",
+					"in": "path",
+					"description": "providerId",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/DataProvider"
+							}
+						}
+					},
+					"400": {
+						"description": "failed to get dataProvider by category"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/provider/{providerId}/delete": {
+			"delete": {
+				"tags": ["registration-offering"],
+				"summary": "delete a data provider by providerId",
+				"operationId": "deleteProviderByProviderIdUsingDELETE",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "providerId",
+					"in": "path",
+					"description": "providerId",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK"
+					},
+					"204": {
+						"description": "No Content"
+					},
+					"400": {
+						"description": "failed to delete an offerings by id"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/offerings": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get total offering and its list",
+				"operationId": "getTotalOfferingAndOfferingListUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "providerId",
+					"in": "query",
+					"description": "providerId",
+					"required": false,
+					"type": "string"
+				}, {
+					"name": "category",
+					"in": "query",
+					"description": "category",
+					"required": false,
+					"type": "string"
+				},{
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				},{
+					"name": "orderBy",
+					"in": "query",
+					"description": "Order by Time/Title. Default is time.",
+					"required": false,
+					"default": "time",
+					"type": "string"
+				},
+				{
+					"name": "sortBy",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is decending",
+					"required": false,
+					"default":"desc",
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Offerings"
+							}
+						}
+					},
+					"400": {
+						"description": "failed to get offerings by category"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/offering/{id}/offeringId": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get a registered data offering by offering id",
+				"operationId": "getRegisteredOfferingUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "id",
+					"in": "path",
+					"description": "id",
+					"required": true,
+					"type": "string"
+				}, {
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "sort",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+					"required": false,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/DataOfferingDto"
+							}
+						}
+					},
+					"400": {
+						"description": "failed to get offerings by offering id"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/offering/{id}/providerId": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get a registered data offering by provider id",
+				"operationId": "getAllRegisteredOfferingsUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "id",
+					"in": "path",
+					"description": "id",
+					"required": true,
+					"type": "string"
+				}, {
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "sort",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+					"required": false,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/DataOfferingDto"
+							}
+						}
+					},
+					"400": {
+						"description": "failed to get offerings by provider id"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/contract-parameter/{offeringId}/offeringId": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get contract parameters by offering id",
+				"operationId": "getOfferingContractsByOfferingIdUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "offeringId",
+					"in": "path",
+					"description": "offeringId",
+					"required": true,
+					"type": "string"
+				}, {
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "sort",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+					"required": false,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/ContractsParametersForOfferings"
+							}
+						}
+					},
+					"400": {
+						"description": "failed to get contract by offeringId"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/offerings-list": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get a list of offerings",
+				"operationId": "getOfferingsListUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "sort",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+					"required": false,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/OfferingsList"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "failed to get list of offerings"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/providers-list": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get a list of providers",
+				"operationId": "getProvidersListUsingGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "sort",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+					"required": false,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/ProvidersList"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "failed to get list of providers"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/providers/{category}/category": {
+			"get": {
+				"tags": ["registration-offering"],
+				"summary": "get a list of providers by category",
+				"operationId": "getProvidersListByCategoryGET",
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "category",
+					"in": "path",
+					"description": "category",
+					"required": true,
+					"type": "string"
+				},{
+					"name": "page",
+					"in": "query",
+					"description": "Page number of the requested page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "size",
+					"in": "query",
+					"description": "Size of a page",
+					"required": false,
+					"type": "integer",
+					"format": "int32"
+				}, {
+					"name": "sort",
+					"in": "query",
+					"description": "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+					"required": false,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/ProvidersList"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "failed to get list of providers"
+					}
+				},
+				"deprecated": false
+			}
+		},
+		"/api/registration/update-offering": {
+			"patch": {
+				"tags": ["registration-offering"],
+				"summary": "update already registered offering info",
+				"operationId": "updateOfferingUsingPATCH",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"in": "body",
+					"name": "dataOfferingDto",
+					"description": "dataOfferingDto",
+					"required": true,
+					"schema": {
+						"$ref": "#/definitions/DataOfferingDto"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "OK"
+					},
+					"204": {
+						"description": "No Content"
+					},
+					"400": {
+						"description": "failed to update offerings"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					}
+				},
+				"deprecated": false
+			}
+		}
+	},
+	"definitions": {
+		"IntNumber":{
+			"type": "number",
+			"properties": {
+				"i": {
+					"type": "number"
+				}
+			},
+			"title": "IntNumber"
+
+		},
+		"CategoriesList": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"description":{
+					"type": "string"
+				}
+			},
+			"title": "CategoriesList"
+		},
+
+		"DataOfferingId":{
+			"type":"object",
+			"properties":{
+				"dataOfferingId":{
+					"type": "string"
+				}
+			},
+
+			"title": "DataOfferingId"
+		},
+		"DataOffering": {
+			"type": "object",
+			"properties": {
+				"provider": {
+					"type": "string",
+					"example": "mandatory_field"
+				},
+				"marketId": {
+					"type": "string"
+				},
+				"owner": {
+					"type": "string"
+				},
+				"dataOfferingTitle":{
+					"type": "string",
+					"example": "mandatory_field"
+				},
+				"dataOfferingDescription": {
+					"type": "string"
+				},
+				"category": {
+					"type": "string",
+					"example": "Other"
+				},
+				"status": {
+					"type": "string",
+					"example": "e.g. Activated, InActivated, ToBeDeleted, Deleted"
+				},
+				"dataOfferingExpirationTime": {
+					"type": "string",
+					"example": "NA"
+				},
+				"contractParameters":{
+					"type":"array",
+					"items":{
+						"$ref": "#/definitions/ContractParameters"
+					}
+				},
+				"hasPricingModel": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/PricingModel"
+					}
+				},
+				"hasDataset": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Dataset"
+					}
+				}
+			},
+			"title": "DataOffering"
+		},
+		"ContractParameters": {
+			"type": "object",
+			"properties": {
+				"contractParametersId":{
+					"type": "string"
+				},
+				"interestOfProvider":{
+					"type": "string",
+					"example": "NA"
+				},
+				"interestDescription":{
+					"type": "string",
+					"example": "NA"
+				},
+				"hasGoverningJurisdiction":{
+					"type": "string",
+					"example": "NA"
+				},
+				"purpose":{
+					"type": "string",
+					"example": "NA"
+				},
+				"purposeDescription":{
+					"type": "string",
+					"example": "NA"
+				},
+				"hasIntendedUse":{
+					"type":"array",
+					"items":{
+						"$ref": "#/definitions/IntendedUse"
+					}
+				},
+				"hasLicenseGrant":{
+					"type":"array",
+					"items":{
+						"$ref": "#/definitions/LicenseGrant"
+					}
+				}
+
+			}
+		},
+		"ContractsParametersForOfferings": {
+			"type": "object",
+			
+			"properties": {
+				"dataOfferingId":{
+					"type": "string"
+				},
+				"provider":{
+					"type": "string",
+					"example": "NA"
+				},
+				"category":{
+					"type": "string",
+					"example": "NA"
+				},
+				"contractParameters":{
+					"type":"array",
+					"items":{
+						"$ref": "#/definitions/ContractParameters"
+					}
+				}
+
+			}
+		},
+		"IntendedUse":{
+			"type":"object",
+			"properties": {
+				"intendedUseId":{
+					"type":"string"
+				},
+				"processData":{
+					"type":"string",
+					"example": "true OR false"
+				},
+				"shareDataWithThirdParty":{
+					"type":"string",
+					"example": "true OR false"
+				},
+				"editData": {
+					"type":"string",
+					"example": "true OR false"
+				}
+			},
+			"title": "IntendedUse"
+
+		},
+		"LicenseGrant":{
+			"type":"object",
+			"properties": {
+				"licenseGrantId":{
+					"type":"string"
+				},
+				"copyData":{
+					"type":"string",
+					"example": "true OR false"
+				},
+				"transferable":{
+					"type":"string",
+					"example": "true OR false"
+				},
+				"exclusiveness":{
+					"type":"string",
+					"example": "true OR false"
+				},
+				"revocable":{
+					"type":"string",
+					"example": "true OR false"
+				}
+			},
+			"title": "LicenseGrant"
+
+		},
+		"DataProvider": {
+			"type": "object",
+			"required": ["name", "providerId"],
+			"properties": {
+				"providerId": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"description": {
+					"type": "string"
+				},
+				
+				"organization": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Organization"
+					}
+				}
+			},
+			"title": "DataProvider"
+		},
+		"PricingModel": {
+			"type": "object",
+			"required": ["hasPaymentOnSubscription", "hasPaymentOnApi", "hasPaymentOnUnit", 
+				"hasPaymentOnSize", "hasFreePrice"],
+			"properties": {
+				"pricingModelId":{
+					"type":"string"
+				},
+				"pricingModelName":{
+					"type":"string",
+					"example": "mandatory_field"
+				},
+				"basicPrice": {
+					"type": "string",
+					"example": "mandatory_field"
+				},
+				"currency": {
+					"type": "string",
+					"example": "mandatory_field"
+				},
+				"hasPaymentOnSubscription": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/PaymentOnSubscription"
+					}
+				},
+				"hasPaymentOnApi": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/PaymentOnApi"
+					}
+				},
+				"hasPaymentOnUnit": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/PaymentOnUnit"
+					}
+				},
+				"hasPaymentOnSize": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/PaymentOnSize"
+					}
+				},
+				"hasFreePrice": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/PaymentOnFreePrice"
+					}
+				}
+			},
+			"title": "PricingModel"
+		},
+		"PaymentOnSubscription": {
+			"type": "object",
+			"properties": {
+				"paymentId":{
+					"type":"string"
+				},
+				"paymentOnSubscriptionName":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"paymentType":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"timeDuration":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"description":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"repeat":{
+					"type":"string",
+					"example":"Daily"
+				},
+				"hasSubscriptionPrice":{
+					"type":"string",
+					"example": "optional_field"
+				}
+			},
+			"title": "PaymentOnSubscription"
+		},
+		"PaymentOnPlan": {
+			"type": "object",
+			"properties": {
+				"paymentId":{
+					"type":"string"
+				},
+				"paymentOnPlanName":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"description":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"planDuration":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"hasPlanPrice":{
+					"type":"string",
+					"example": "optional_field"
+				}
+			},
+			"title": "PaymentOnPlan"
+		},
+		"PaymentOnApi": {
+			"type": "object",
+			"properties": {
+				"paymentId":{
+					"type":"string"
+				},
+				"paymentOnApiName":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"description":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"numberOfObject":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"hasApiPrice":{
+					"type":"string",
+					"example": "optional_field"
+				}
+			},
+			"title": "PaymentOnApi"
+		},
+		"PaymentOnUnit": {
+			"type": "object",
+			"properties": {
+				"paymentId":{
+					"type":"string"
+				},
+				"paymentOnUnitName":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"description":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"dataUnit":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"hasUnitPrice":{
+					"type":"string",
+					"example": "optional_field"
+				}
+				
+			},
+			"title": "PaymentOnUnit"
+		},
+		"PaymentOnSize": {
+			"type": "object",
+			"properties": {
+				"paymentId":{
+					"type":"string"
+				},
+				"paymentOnSizeName":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"description":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"dataSize":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"hasSizePrice":{
+					"type":"string",
+					"example": "optional_field"
+				}
+			},
+			"title": "PaymentOnSize"
+		},
+		"PaymentOnFreePrice": {
+			"type": "object",
+			"properties": {
+				"paymentId":{
+					"type":"string"
+				},
+				"hasPriceFree":{
+					"type":"string",
+					"example": "optional_field"
+				}
+			},
+			"title": "PaymentOnFreePrice"
+		},
+		"Dataset": {
+			"type": "object",
+			"required": ["datasetInformation", "distribution"],
+			"properties": {
+				"datasetId":{
+					"type":"string"
+				},
+				"title":{
+					"type":"string",
+					"example": "mandatory_field"
+				},
+				"keyword":{
+					"type":"string",
+					"example": "mandatory_field"
+				},
+				"dataset":{
+					"type":"string",
+					"example": "optional_field"
+				},
+				"description": {
+					"type": "string",
+					"example": "optional_field"
+				},			
+				"issued": {
+					"type": "string",
+					"example": "date-time"
+				},
+				"modified": {
+					"type": "string",
+					"example": "date-time"
+				},
+				"temporal": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"language": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"spatial": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"accrualPeriodicity": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"temporalResolution": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"distribution": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Distribution"
+					}
+				},
+				"datasetInformation": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/DatasetInformation"
+					}
+				},
+				"theme": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"example": "optional_field"
+					}
+				}
+			},
+			"title": "Dataset"
+		},
+		"Distribution": {
+			"type": "object",
+			"required": ["accessService"],
+			"properties": {
+				"distributionId":{
+					"type":"string"
+				},
+				"title": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"description": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"license": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"accessRights": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"downloadType": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"conformsTo": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"mediaType": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"packageFormat": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"accessService": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/AccessService"
+					}
+				}
+				
+			},
+			"title": "Distribution"
+		},
+		"AccessService": {
+			"type": "object",
+			"properties": {
+				"dataserviceId": {
+					"type": "string"
+				},
+				"conformsTo": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"endpointDescription": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"endpointURL": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"servesDataset": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"serviceSpecs": {
+					"type": "string",
+					"example": "optional_field"
+				}
+			},
+			"title": "AccessService"
+		},
+		"DatasetInformation": {
+			"type": "object",
+			"properties": {	
+				"datasetInformationId": {
+					"type": "string"
+				},
+				"measurementType": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"measurementChannelType": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"sensorId": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"deviceId": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"cppType": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"sensorType": {
+					"type": "string",
+					"example": "optional_field"
+				}
+			},
+			"title": "DatasetInformation"
+		},
+		
+		"OfferingsList": {
+			"type": "object",
+			"properties": {
+				"offering": {
+					"type": "string",
+					"example": "example_dataoffering1"
+				}
+			},
+			"title": "OfferingsList"
+		},
+		"Organization": {
+			"type": "object",
+			"required": ["name", "organizationId"],
+			"properties": {
+				"organizationId": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"description": {
+					"type": "string",
+					"example": "optional_field" 
+				},
+				"address": {
+					"type": "string",
+					"example": "optional_field"
+				},
+				"contactPoint": {
+					"type": "string",
+					"example": "optional_field"
+				}
+			},
+			"title": "Organization"
+		},
+		"ProvidersList": {
+			"type": "object",
+			"properties": {
+				"providerId": {
+					"type": "string"
+				}
+			},
+			"title": "ProvidersList"
+		},
+		"Offerings": {
+			"type": "object",
+			"properties": {
+				"totalOffering": {
+					"type": "number"
+				},
+				"result":{
+					"type":"array",
+					"items":{
+						"$ref": "#/definitions/DataOfferingDto"
+					}
+				}
+			},
+			"title": "Offerings"
+		},
+		"DataOfferingDto": {
+			"type": "object",
+			"required": ["hasDataset", "hasPricingModel", "provider", "contractParameters"],
+			"properties": {
+				"dataOfferingId": {
+					"type": "string"
+				},
+				"provider": {
+					"type": "string"
+				},
+				"marketId": {
+					"type": "string"
+				},
+				"owner": {
+					"type": "string"
+				},
+				"dataOfferingTitle":{
+					"type": "string"
+				},
+				"dataOfferingDescription": {
+					"type": "string"
+				},
+				"category": {
+					"type": "string"
+				},
+				"status": {
+					"type": "string",
+					"example": "activated, inactivated, deleted"
+				},
+				"version": {
+					"type": "number"
+				},
+				"dataOfferingExpirationTime": {
+					"type": "string"
+				},
+				"dataOfferingCreated": {
+					"type": "string"
+				},
+				"lastModified": {
+					"type": "string"
+				},
+
+				"contractParameters":{
+					"type":"array",
+					"items":{
+						"$ref": "#/definitions/ContractParameters"
+					}
+				},
+
+				"hasPricingModel": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/PricingModel"
+					}
+				},
+				"hasDataset": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Dataset"
+					}
+				}
+				
+			},
+			"title": "DataOfferingDto"
+		}
+	}
+}
