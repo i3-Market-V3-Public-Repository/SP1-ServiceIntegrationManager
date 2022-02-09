@@ -338,7 +338,7 @@ String protectController(String serviceName, String controller) {
           "import {sign} from 'jsonwebtoken';\n" +
       controller;
   final operationRegexp = RegExp(
-      r"@operation\('(?<verb>\w+)', '(?<path>[\w\/?&%\-\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
+      r"@operation\('(?<verb>\w+)', '(?<path>[\w\.\/?&%\-\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
       r'async (?<function>\w+)'
       r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:?]+(\s*,\s*)?)*?)\): '
       //FIXME Can fail if promised object contains "
