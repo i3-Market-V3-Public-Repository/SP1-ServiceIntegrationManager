@@ -8,6 +8,12 @@ import 'package:recase/recase.dart';
 import 'package:validators2/validators.dart';
 import 'package:yaml/yaml.dart';
 
+import 'metaObjects/annotation.dart';
+import 'metaObjects/controller.dart';
+import 'metaObjects/import.dart';
+import 'metaObjects/method.dart';
+import 'parsers/typescript_parser.dart';
+
 void main(List<String> arguments) async {
   welcome();
   final projectPath = askBasePath();
@@ -222,10 +228,83 @@ void finishControllers(String projectPath, String serviceName) {
   final controllers = Directory('$projectPath/src/controllers/$serviceName').listSync().whereType<File>();
   for (final controllerFile in controllers) {
     print('Finishing controller ${basename(controllerFile.path)}');
-    final controller = controllerFile.readAsStringSync();
-    final protectedController = protectController(controller);
-    final connectedController = connectController(protectedController, projectPath, serviceName);
-    controllerFile.writeAsStringSync(connectedController);
+    final controllerContent = controllerFile.readAsStringSync();
+    final parsedController = Lb4ControllerDefinition().build().parse(controllerContent);
+    final Controller controller = parsedController.value;
+    protectControllerGrammar(controller);
+    connectControllerGrammar(controller, projectPath, serviceName);
+    controllerFile.writeAsStringSync(controller.toString());
+  }
+}
+
+void protectControllerGrammar(Controller controller) {
+  final newImports = [
+    ImportStatement(['authenticate'], '@loopback/authentication'),
+    ImportStatement(['authorize'], '@loopback/authorization'),
+    ImportStatement(['JWT_STRATEGY_NAME'], '../../auth/jwt.strategy'),
+    ImportStatement(['SecurityBindings'], '@loopback/security'),
+    ImportStatement(['BackplaneUserProfile'], '../../auth/users'),
+    ImportStatement(['Request', 'RestBindings'], '@loopback/rest'),
+    ImportStatement(['inject'], '@loopback/core'),
+    ImportStatement(['sign'], 'jsonwebtoken'),
+  ];
+  controller.imports.addAll(newImports);
+  for (final method in controller.classDefinition.methods) {
+    final operationAnnotation = method.annotations.firstWhere((annotation) => annotation.name == 'operation');
+    final verb = operationAnnotation.parameters[0].toUpperCase();
+    final path = operationAnnotation.parameters[1];
+    final spec = loadYaml(operationAnnotation.parameters[2]) as Map;
+    final security = spec['security'] as List?;
+    if (security != null) {
+      method.annotations.add(Annotation(name: 'authenticate', parameters: ['JWT_STRATEGY_NAME']));
+      final scopes =
+          (security.firstWhere((element) => (element as Map).containsKey('openIdConnect'))['openIdConnect'] as List);
+      print('\t$method: $path Scopes: $scopes');
+      if (scopes.isNotEmpty) {
+        final scopesString = jsonEncode(scopes).replaceAll('"', "'");
+        method.annotations.add(Annotation(name: 'authorize', parameters: ['{scopes: $scopesString}']));
+      }
+      method.body = 'const backplaneAuthorization = `Bearer \${sign(user, this.secret)}`;\n'
+          "const backplaneToken = this.request.headers['authorization']!;\n"
+          '${method.body}';
+    } else {
+      print('\t$verb: $path No security');
+    }
+  }
+}
+
+void connectControllerGrammar(Controller controller, String projectPath, String subsystemName) {
+  final serviceName = controller.classDefinition.name.replaceAll(RegExp(r'Controller$'), 'Service');
+  final providerName = serviceName + 'Provider';
+
+  controller.imports.addAll([
+    ImportStatement([serviceName, providerName], '../../services'),
+    ImportStatement(['service'], '@loopback/core'),
+  ]);
+
+  controller.classDefinition.constructor.parameters.addAll([
+    ConstructorParameter(
+        annotation: Annotation(name: 'service', parameters: [providerName]),
+        visibilitySpecifier: 'public',
+        name: serviceName.camelCase,
+        type: serviceName),
+    ConstructorParameter(
+        annotation: Annotation(name: 'inject', parameters: ['RestBindings.Http.REQUEST']),
+        visibilitySpecifier: 'private',
+        name: 'request',
+        type: 'Request'),
+    ConstructorParameter(
+        annotation: Annotation(name: 'inject', parameters: ['config.secrets']),
+        visibilitySpecifier: 'private',
+        name: 'secrets',
+        type: '{[service: string]: string}'),
+  ]);
+
+  controller.classDefinition.constructor.body += "this.secret = this.secrets['$subsystemName'];\n";
+  for (final endpoint in controller.classDefinition.methods) {
+    final endpointParams = endpoint.parameters.map((e) => e.name).join(', ');
+    final functionParams = endpointParams.replaceFirst('user', 'backplaneAuthorization, backplaneToken');
+    endpoint.body += 'return this.${serviceName.camelCase}.${endpoint.name}($functionParams)';
   }
 }
 
@@ -323,7 +402,7 @@ String connectController(String protectedController, String projectPath, String 
     final rematch = match as RegExpMatch;
     final params = rematch
         .namedGroup('params')!
-    // FIXME Can fail if parameter specification has the string '})' somewhere
+        // FIXME Can fail if parameter specification has the string '})' somewhere
         .split(RegExp(r'@[\w\.]+\(\{?.*?(?:\}|USER)\)', dotAll: true))
         .where((element) => element.isNotEmpty)
         .map((e) => e.split(':').first.trim());
