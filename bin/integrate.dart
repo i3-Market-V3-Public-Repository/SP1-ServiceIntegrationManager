@@ -354,7 +354,7 @@ void protectControllerGrammar(Controller controller, String serviceName) {
     final operationAnnotation = method.annotations.firstWhere((annotation) => annotation.name == 'operation');
     final verb = operationAnnotation.parameters[0].toUpperCase();
     final path = operationAnnotation.parameters[1];
-    final newPath = '/$serviceName$path';
+    final newPath = '\'/$serviceName${path.substring(1)}';
     operationAnnotation.parameters[1] = newPath;
     final spec = loadYaml(operationAnnotation.parameters[2]) as Map;
     final security = spec['security'] as List?;
