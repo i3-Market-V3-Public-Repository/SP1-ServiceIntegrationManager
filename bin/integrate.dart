@@ -260,7 +260,7 @@ void protectControllerGrammar(Controller controller) {
       method.annotations.add(Annotation(name: 'authenticate', parameters: ['JWT_STRATEGY_NAME']));
       final scopes =
           (security.firstWhere((element) => (element as Map).containsKey('openIdConnect'))['openIdConnect'] as List);
-      print('\t$method: $path Scopes: $scopes');
+      print('\t$verb: $path Scopes: $scopes');
       if (scopes.isNotEmpty) {
         final scopesString = jsonEncode(scopes).replaceAll('"', "'");
         method.annotations.add(Annotation(name: 'authorize', parameters: ['{scopes: $scopesString}']));
@@ -271,6 +271,23 @@ void protectControllerGrammar(Controller controller) {
     } else {
       print('\t$verb: $path No security');
     }
+    final numParams = method.parameters.length;
+    method.parameters.removeWhere((param) => ['backplaneToken', 'backplaneAuthorization'].contains(param.name));
+    if (numParams != method.parameters.length) {
+      method.parameters.add(Parameter(
+          annotation: Annotation(name: 'inject', parameters: ['SecurityBindings.USER']),
+          name: 'user',
+          type: 'BackplaneUserProfile'));
+    }
+
+    String operationSpec = operationAnnotation.parameters[2];
+    operationSpec = operationSpec.replaceAll(
+        RegExp(r" *\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*},\s*"), '');
+    operationAnnotation.parameters[2] = operationSpec.replaceAll(
+        RegExp(r" *\{\s*name\: 'backplane-token',\s*in: 'header',\s*required: true,\s*},\s*"), '');
+
+    method.documentation = method.documentation.replaceAll(RegExp(r'\* @param backplaneAuthorization\s+(?=\*)'), '');
+    method.documentation = method.documentation.replaceAll(RegExp(r'\* @param backplaneToken'), '* @param user');
   }
 }
 
@@ -306,7 +323,7 @@ void connectControllerGrammar(Controller controller, String projectPath, String 
   for (final endpoint in controller.classDefinition.methods) {
     final endpointParams = endpoint.parameters.map((e) => e.name).join(', ');
     final functionParams = endpointParams.replaceFirst('user', 'backplaneAuthorization, backplaneToken');
-    endpoint.body += 'return this.${serviceName.camelCase}.${endpoint.name}($functionParams)';
+    endpoint.body += 'return this.${serviceName.camelCase}.${endpoint.name}($functionParams);';
   }
 }
 

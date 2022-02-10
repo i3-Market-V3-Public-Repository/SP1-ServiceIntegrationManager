@@ -85,7 +85,7 @@ class Lb4ControllerDefinition extends GrammarDefinition {
           name: value[4],
           parameters: (value[6] as List? ?? []).cast<Parameter>(),
           returnType: value[9],
-          body: value[11]));
+          body: ''));
 
   Parser parameterList() =>
       ref0(parameter).separatedBy(ref0(comma), includeSeparators: false, optionalSeparatorAtEnd: true);

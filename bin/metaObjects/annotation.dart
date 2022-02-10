@@ -5,5 +5,5 @@ class Annotation {
   Annotation({required this.name, required this.parameters});
 
   @override
-  String toString() => '@$name(${parameters.join(', ')})\n';
+  String toString() => '@$name(${parameters.join(', ')})';
 }
