@@ -1,0 +1,186 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Conflict-Resolver Service (CRS) API",
+    "version": "1.0",
+    "description": "The Conflict-Resolver Service (CSR) can be queried to provide a signed resolution about the non-repudiation protocol associated to an invoice being valid or invalid. It could be invoked by either the consumer or the provider. It is a core element of the Conflict Resolution system in i3-MARKET.",
+    "license": {
+      "name": "EUPL-1.2",
+      "url": "https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt"
+    },
+    "contact": {
+      "name": "Juan Hernández Serrano",
+      "email": "j.hernandez@upc.edu",
+      "url": "https://github.com/juanelas"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://95.211.3.244:8888/"
+    },
+    {
+      "url": "http://95.211.3.249:8888/"
+    },
+    {
+      "url": "http://95.211.3.250:8888/"
+    },
+    {
+      "url": "http://95.211.3.251:8888/"
+    }
+  ],
+  "paths": {
+    "/dispute": {
+      "post": {
+        "summary": "initiates a dispute claiming that a cipherblock cannot be decrypted and thus that the data exchange is invalid",
+        "tags": [
+          "Conflict-Resolver Service"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisputeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "It returns a signed resolution as a compact JWS with payload:\n\n```typescript\n{\n  proofType: 'resolution'\n  type: 'dispute'\n  resolution: 'accepted' | 'denied' // resolution is 'denied' if the cipherblock can be properly decrypted; otherwise is 'accepted'\n  dataExchangeId: string // the unique id of this data exchange\n  iat: number // unix timestamp stating when it was resolved\n  iss: string // the public key of the CRS in JWK\n  sub: string // the public key (JWK) of the entity that requested a resolution\n}\n```\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedResolution"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verification": {
+      "post": {
+        "tags": [
+          "Conflict-Resolver Service"
+        ],
+        "summary": "verification request of completeness of non-repudiation protocol regarding a data exchange",
+        "description": "The Conflict-Resolver Service (CSR) can be queried to provide a signed resolution about a data exchanged successfully performed or not (completeness of the non-repudiation protocol). It could be invoked by either the consumer or the provider.\nA provider should query this endpoint to get a signed resolution to send along with the invoice to the consumer.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A signed resolution as a compact JWS with payload:\n\n```typescript\n{\n  proofType: 'resolution'\n  type: 'verification'\n  resolution: 'completed' | 'not completed' // whether the data exchange has been verified to be complete\n  dataExchangeId: string // the unique id of this data exchange\n  iat: number // unix timestamp stating when it was resolved\n  iss: string // the public key of the CRS in JWK\n  sub: string // the public key (JWK) of the entity that requested a resolution\n}\n```\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedResolution"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SignedResolution": {
+        "title": "SignedResolution",
+        "type": "object",
+        "required": [
+          "signedResolution"
+        ],
+        "properties": {
+          "signedResolution": {
+            "$ref": "#/components/schemas/CompactJWS"
+          }
+        },
+        "description": "A signed resolution object as a compact JWS signed by the CRS. The payload of a resolution is:\n\n```typescript\n{\n  proofType: 'resolution'\n  type: 'verification' | 'dispute'\n  resolution: 'completed' | 'not completed' | 'accepted' | 'denied' \n  dataExchangeId: string // the unique id of this data exchange\n  iat: number // unix timestamp stating when it was resolved\n  iss: string // the public key of the CRS as a JWK\n  sub: string // the public key (JWK) of the entity that requested a resolution\n}\n```\n\nIf `type` is `verification`, `resolution` can be `completed` (the non-repudiation protocol has been verified to be completed) or `not completed`.\n\nIf `type` is `dispute`, `resolution` accepted (the CRS has verified that the cipherblock exchanged cannot be decrypted) or `denied`.\n"
+      },
+      "CompactJWS": {
+        "title": "CompactJWS",
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+$"
+      },
+      "ApiError": {
+        "type": "object",
+        "title": "Error",
+        "required": [
+          "name",
+          "description"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "DisputeInput": {
+        "title": "DisputeInput",
+        "description": "A dispute request as a compact JSON Web Signature (JWS). For the request to be accepted, it MUST be signed with the same key it was used during the data exchange for this verification.\n\nThe payload of a decoded `disputeRequest` holds a valid PoR, and the received cipherblock:\n\n```typescript\n{\n  proofType: 'request'\n  type: 'disputeRequest'\n  iss: 'dest'\n  cipherblock: string // the cipherblock as a JWE string\n  iat: number // unix timestamp for issued at\n  por: string // a compact JWS holding a PoR. The proof MUST be signed with the same key as either 'orig' or 'dest' of the payload proof.\n  dataExchangeId: string // the unique id of this data exchange\n}\n```\n",
+        "type": "object",
+        "required": [
+          "disputeRequest"
+        ],
+        "properties": {
+          "disputeRequest": {
+            "$ref": "#/components/schemas/CompactJWS"
+          }
+        },
+        "example": {
+          "disputeRequest": "eyJhbGciOiJFUzI1NiJ9.eyJwcm9vZlR5cGUiOiJyZXF1ZXN0IiwiaXNzIjoiZGVzdCIsInBvciI6ImV5SmhiR2NpT2lKRlV6STFOaUo5LmV5SndjbTl2WmxSNWNHVWlPaUpRYjFJaUxDSnBjM01pT2lKa1pYTjBJaXdpWlhoamFHRnVaMlVpT25zaWIzSnBaeUk2SW50Y0ltRnNaMXdpT2x3aVJWTXlOVFpjSWl4Y0ltTnlkbHdpT2x3aVVDMHlOVFpjSWl4Y0ltdDBlVndpT2x3aVJVTmNJaXhjSW5oY0lqcGNJa0pxZW1ocVRrMXFRVkl0TFdwNmRqWmpRaTFQYVhSU2IwMURkbEpZVldaTVdUUmFhVEZZZVMwd1VtZGNJaXhjSW5sY0lqcGNJbnBUVjFKdU1VaENWV2MwUmpORE5tOWpZMUprUzNaMVUydDNNak5LUW1oWFIweHVkRU5zTVdwS2NqUmNJbjBpTENKa1pYTjBJam9pZTF3aVlXeG5YQ0k2WENKRlV6STFObHdpTEZ3aVkzSjJYQ0k2WENKUUxUSTFObHdpTEZ3aWEzUjVYQ0k2WENKRlExd2lMRndpZUZ3aU9sd2lWbGh6UW5WUFduZFdhbWh2WmtwV05HdEJhR0poTm5kdU1VVlpSSGRWU1d0bldHSXlabFp1VERoNFkxd2lMRndpZVZ3aU9sd2lhRFJtVERWUmRqUkZXWFEzV0dSTGNXUkplVEZhU25NMFgxRlhXVVJyV1RGNlZYcFRiMGsyTVU0M1dWd2lmU0lzSW1WdVkwRnNaeUk2SWtFeU5UWkhRMDBpTENKemFXZHVhVzVuUVd4bklqb2lSVk15TlRZaUxDSm9ZWE5vUVd4bklqb2lVMGhCTFRJMU5pSXNJbXhsWkdkbGNrTnZiblJ5WVdOMFFXUmtjbVZ6Y3lJNklqQjRPR1EwTURkaE1UY3lNall6TTJKa1pERmtZMll5TWpFME56UmlaVGRoTkRSak1EVmtOMk15WmlJc0lteGxaR2RsY2xOcFoyNWxja0ZrWkhKbGMzTWlPaUl3ZURFM1ltUXhNbU15TVRNMFlXWmpNV1kyWlRrek1ESmhOVE15WldabE16QmpNVGxpT1dVNU1ETWlMQ0p3YjI5VWIxQnZja1JsYkdGNUlqb3hNREF3TUN3aWNHOXZWRzlRYjNCRVpXeGhlU0k2TWpBd01EQXNJbkJ2YjFSdlUyVmpjbVYwUkdWc1lYa2lPakU0TURBd01Dd2lZMmx3YUdWeVlteHZZMnRFWjNOMElqb2lSREZpUjIxTWIwNVZhbmRrVDNGMFJ6aGpZa3B1VVhCNmEzZzFOMVJWWlRsSU1FWldaRWxxTlRoWk9DSXNJbUpzYjJOclEyOXRiV2wwYldWdWRDSTZJbGhWY0RnemJtcE1WVlk0V1UwdFZuWndaVmhpUVcxVE1rMVhRM2t3Y21ZNVZXZHViMWhDYm04dGIyTWlMQ0p6WldOeVpYUkRiMjF0YVhSdFpXNTBJam9pT0U1U1ptRkhhVVF6UldOcFUyNXFWa1l6ZWt0WVoxRlNjeTFTY1VwMlltdDVUbXBhVTFwVlNEZElaeUlzSW1sa0lqb2lVMDVvT1hsTFdHSXlaV2hzVmtoU1dVSkpaV3N0ZW1kYVZXZ3liVk5UYnpGcWNHeG9OMGxoTFRSNVVTSjlMQ0p3YjI4aU9pSmxlVXBvWWtkamFVOXBTa1pWZWtreFRtbEtPUzVsZVVwM1kyMDVkbHBzVWpWalIxVnBUMmxLVVdJd09HbE1RMHB3WXpOTmFVOXBTblpqYld4dVNXbDNhVnBZYUdwaFIwWjFXakpWYVU5dWMybGlNMHB3V25sSk5rbHVkR05KYlVaeldqRjNhVTlzZDJsU1ZrMTVUbFJhWTBscGVHTkpiVTU1Wkd4M2FVOXNkMmxWUXpCNVRsUmFZMGxwZUdOSmJYUXdaVlozYVU5c2QybFNWVTVqU1dsNFkwbHVhR05KYW5CalNXdEtjV1Z0YUhGVWF6RnhVVlpKZEV4WGNEWmthbHBxVVdreFVHRllVbE5pTURGRVpHeEtXVlpYV2sxWFZGSmhZVlJHV1dWVE1IZFZiV1JqU1dsNFkwbHViR05KYW5CalNXNXdWRll4U25WTlZXaERWbGRqTUZKcVRrUk9iVGxxV1RGS2ExTXpXakZWTW5RelRXcE9TMUZ0YUZoU01IaDFaRVZPYzAxWGNFdGphbEpqU1c0d2FVeERTbXRhV0U0d1NXcHZhV1V4ZDJsWlYzaHVXRU5KTmxoRFNrWlZla2t4VG14M2FVeEdkMmxaTTBveVdFTkpObGhEU2xGTVZFa3hUbXgzYVV4R2QybGhNMUkxV0VOSk5saERTa1pSTVhkcFRFWjNhV1ZHZDJsUGJIZHBWbXhvZWxGdVZsQlhibVJYWVcxb2RscHJjRmRPUjNSQ1lVZEthRTV1WkhWTlZWWmFVa2hrVmxOWGRHNVhSMGw1V214YWRWUkVhRFJaTVhkcFRFWjNhV1ZXZDJsUGJIZHBZVVJTYlZSRVZsSmthbEpHVjFoUk0xZEhVa3hqVjFKS1pWUkdZVk51VFRCWU1VWllWMVZTY2xkVVJqWldXSEJVWWpCck1rMVZORE5YVm5kcFpsTkpjMGx0Vm5WWk1FWnpXbmxKTmtsclJYbE9WRnBJVVRBd2FVeERTbnBoVjJSMVlWYzFibEZYZUc1SmFtOXBVbFpOZVU1VVdXbE1RMHB2V1ZoT2IxRlhlRzVKYW05cFZUQm9Ra3hVU1RGT2FVbHpTVzE0YkZwSFpHeGphMDUyWW01U2VWbFhUakJSVjFKclkyMVdlbU41U1RaSmFrSTBUMGRSTUUxRVpHaE5WR041VFdwWmVrMHlTbXRhUkVacldUSlplVTFxUlRCT2VsSnBXbFJrYUU1RVVtcE5SRlpyVGpKTmVWcHBTWE5KYlhoc1drZGtiR05zVG5CYU1qVnNZMnRHYTFwSVNteGpNMDFwVDJsSmQyVkVSVE5aYlZGNFRXMU5lVTFVVFRCWlYxcHFUVmRaTWxwVWEzcE5SRXBvVGxSTmVWcFhXbXhOZWtKcVRWUnNhVTlYVlRWTlJFMXBURU5LZDJJeU9WVmlNVUoyWTJ0U2JHSkhSalZKYW05NFRVUkJkMDFEZDJsalJ6bDJWa2M1VVdJelFrVmFWM2hvWlZOSk5rMXFRWGROUkVGelNXNUNkbUl4VW5aVk1sWnFZMjFXTUZKSFZuTlpXR3RwVDJwRk5FMUVRWGROUTNkcFdUSnNkMkZIVm5sWmJYaDJXVEowUlZvelRqQkphbTlwVWtSR2FWSXlNVTFpTURWV1lXNWthMVF6UmpCU2VtaHFXV3R3ZFZWWVFqWmhNMmN4VGpGU1ZscFViRWxOUlZwWFdrVnNjVTVVYUZwUFEwbHpTVzFLYzJJeVRuSlJNamwwWWxkc01HSlhWblZrUTBrMlNXeG9WbU5FWjNwaWJYQk5WbFpaTkZkVk1IUldibHAzV2xab2FWRlhNVlJOYXpGWVVUTnJkMk50V1RWV1YyUjFZakZvUTJKdE9IUmlNazFwVEVOS2VscFhUbmxhV0ZKRVlqSXhkR0ZZVW5SYVZ6VXdTV3B2YVU5Rk5WTmFiVVpJWVZWUmVsSlhUbkJWTWpWeFZtdFplbVZyZEZsYU1VWlRZM2t4VTJOVmNESlpiWFExVkcxd1lWVXhjRlpUUkdSSldubEpjMGx0Ykd0SmFtOXBWVEExYjA5WWJFeFhSMGw1V2xkb2MxWnJhRk5YVlVwS1dsZHpkR1Z0WkdGV1YyZDVZbFpPVkdKNlJuRmpSM2h2VGpCc2FFeFVValZWVTBvNVRFTktjRmxZVVdsUGFrVXlUWHByTTA5VVNUTk5SR3c1TG5WMU5XUkNka05YTTNveFZqWjNaV3N3Y1hSMGFuWTNhMmxmY1V4RFoySjZObUZ4U1dGMGJWVlhVWEptVTIxNE1qTkpRbFV3Um1aU1EwbEtSWFZyYkV4TVZ6VkVVVzR4UkhSVVUxTmtXbk5ZU2toM2REQjNJaXdpYVdGMElqb3hOak01TnpreU56QTVmUS5tZndBZjRlVVd0N040UEVPd3dHMjNRSEpFNXI3NW50ODNKMWhDVWdSNkVxRWk4dVlJN0t2QWpZdzdod2VpVHJqZ1NMT2w4NnlDT2lVSk9ZZko3OGZjQSIsInR5cGUiOiJkaXNwdXRlUmVxdWVzdCIsImNpcGhlcmJsb2NrIjoiZXlKaGJHY2lPaUprYVhJaUxDSmxibU1pT2lKQk1qVTJSME5OSW4wLi5fQXpkaF91ZG9neHQxVHV0LllOZHpmNjJEY3ZIQkRVSnhLaGFHVkw2R3ptNExiVXp4bVZaTi1kSEN4M2xXWTFNUldEelVpZWptaUtGbVJmQ3JrZC1jbThWYXhhM184NXZlUXZuYjhrRFQ0dGRXcmlZTUw0TGx4THowM0dUSVByLVFhZDdRSHl0dHVCQTFpb0xub2xfSWZRWjduNGNTLUxlazRfSlRYRm5IQU4xUldIZ2cxQ1RjYWhtNlVNTkt0UmtVMjlkaXUzXzRGSklOeF9xVVpuTzJnTkcxMVJVSXZGaldwQ3ZUakE3aXRUNVZkdk9yR2hEaE9YSGl6V2FtUTNHM3hGQndIbFJMTFUwTWh1VUExU1BXVVd1aXg4a0hVT3lwN0RQMktzdXR1bTlOUG03MEI4QnJua0xpMVRQSFpTSlAyS0YxVDhlU1E0cmZuQ1E0bUM3aElrT1JZRnczc1VZRnpDUVF2Zy5VcllaVkRDQ2tSQUF6eG5qMmI0THFnIiwiaWF0IjoxNjM5NzkyNzU0LCJkYXRhRXhjaGFuZ2VJZCI6IlNOaDl5S1hiMmVobFZIUllCSWVrLXpnWlVoMm1TU28xanBsaDdJYS00eVEifQ.votEono3u7FJ9-te5zlLnltbk9tEp25vk2BmTm2Qz438_WsHEzXYonvnkS7bue76EW4xhYoeMy81SJfpFNdJaA"
+        }
+      },
+      "VerificationInput": {
+        "title": "VerificationInput",
+        "description": "A verification request is a JWS signed by either the consumer or the provider using the same key he/she used for the data exchange. The verification request payload holds a valid PoR:\n\n```typescript\n{\n  type: 'verificationRequest'\n  proofType: 'request'\n  iss: 'orig' | 'dest'\n  iat: number // unix timestamp for issued at\n  por: string // a compact JWS holding a PoR. The proof MUST be signed with the same key as either 'orig' or 'dest' of the payload proof.\n  dataExchangeId: string // the unique id of this data exchange\n}\n```\n",
+        "type": "object",
+        "required": [
+          "verificationRequest"
+        ],
+        "properties": {
+          "verificationRequest": {
+            "$ref": "#/components/schemas/CompactJWS"
+          }
+        },
+        "example": [
+          {
+            "verificationRequest": "eyJhbGciOiJFUzI1NiJ9.eyJwcm9vZlR5cGUiOiJyZXF1ZXN0IiwiaXNzIjoib3JpZyIsImRhdGFFeGNoYW5nZUlkIjoiU05oOXlLWGIyZWhsVkhSWUJJZWstemdaVWgybVNTbzFqcGxoN0lhLTR5USIsInBvciI6ImV5SmhiR2NpT2lKRlV6STFOaUo5LmV5SndjbTl2WmxSNWNHVWlPaUpRYjFJaUxDSnBjM01pT2lKa1pYTjBJaXdpWlhoamFHRnVaMlVpT25zaWIzSnBaeUk2SW50Y0ltRnNaMXdpT2x3aVJWTXlOVFpjSWl4Y0ltTnlkbHdpT2x3aVVDMHlOVFpjSWl4Y0ltdDBlVndpT2x3aVJVTmNJaXhjSW5oY0lqcGNJa0pxZW1ocVRrMXFRVkl0TFdwNmRqWmpRaTFQYVhSU2IwMURkbEpZVldaTVdUUmFhVEZZZVMwd1VtZGNJaXhjSW5sY0lqcGNJbnBUVjFKdU1VaENWV2MwUmpORE5tOWpZMUprUzNaMVUydDNNak5LUW1oWFIweHVkRU5zTVdwS2NqUmNJbjBpTENKa1pYTjBJam9pZTF3aVlXeG5YQ0k2WENKRlV6STFObHdpTEZ3aVkzSjJYQ0k2WENKUUxUSTFObHdpTEZ3aWEzUjVYQ0k2WENKRlExd2lMRndpZUZ3aU9sd2lWbGh6UW5WUFduZFdhbWh2WmtwV05HdEJhR0poTm5kdU1VVlpSSGRWU1d0bldHSXlabFp1VERoNFkxd2lMRndpZVZ3aU9sd2lhRFJtVERWUmRqUkZXWFEzV0dSTGNXUkplVEZhU25NMFgxRlhXVVJyV1RGNlZYcFRiMGsyTVU0M1dWd2lmU0lzSW1WdVkwRnNaeUk2SWtFeU5UWkhRMDBpTENKemFXZHVhVzVuUVd4bklqb2lSVk15TlRZaUxDSm9ZWE5vUVd4bklqb2lVMGhCTFRJMU5pSXNJbXhsWkdkbGNrTnZiblJ5WVdOMFFXUmtjbVZ6Y3lJNklqQjRPR1EwTURkaE1UY3lNall6TTJKa1pERmtZMll5TWpFME56UmlaVGRoTkRSak1EVmtOMk15WmlJc0lteGxaR2RsY2xOcFoyNWxja0ZrWkhKbGMzTWlPaUl3ZURFM1ltUXhNbU15TVRNMFlXWmpNV1kyWlRrek1ESmhOVE15WldabE16QmpNVGxpT1dVNU1ETWlMQ0p3YjI5VWIxQnZja1JsYkdGNUlqb3hNREF3TUN3aWNHOXZWRzlRYjNCRVpXeGhlU0k2TWpBd01EQXNJbkJ2YjFSdlUyVmpjbVYwUkdWc1lYa2lPakU0TURBd01Dd2lZMmx3YUdWeVlteHZZMnRFWjNOMElqb2lSREZpUjIxTWIwNVZhbmRrVDNGMFJ6aGpZa3B1VVhCNmEzZzFOMVJWWlRsSU1FWldaRWxxTlRoWk9DSXNJbUpzYjJOclEyOXRiV2wwYldWdWRDSTZJbGhWY0RnemJtcE1WVlk0V1UwdFZuWndaVmhpUVcxVE1rMVhRM2t3Y21ZNVZXZHViMWhDYm04dGIyTWlMQ0p6WldOeVpYUkRiMjF0YVhSdFpXNTBJam9pT0U1U1ptRkhhVVF6UldOcFUyNXFWa1l6ZWt0WVoxRlNjeTFTY1VwMlltdDVUbXBhVTFwVlNEZElaeUlzSW1sa0lqb2lVMDVvT1hsTFdHSXlaV2hzVmtoU1dVSkpaV3N0ZW1kYVZXZ3liVk5UYnpGcWNHeG9OMGxoTFRSNVVTSjlMQ0p3YjI4aU9pSmxlVXBvWWtkamFVOXBTa1pWZWtreFRtbEtPUzVsZVVwM1kyMDVkbHBzVWpWalIxVnBUMmxLVVdJd09HbE1RMHB3WXpOTmFVOXBTblpqYld4dVNXbDNhVnBZYUdwaFIwWjFXakpWYVU5dWMybGlNMHB3V25sSk5rbHVkR05KYlVaeldqRjNhVTlzZDJsU1ZrMTVUbFJhWTBscGVHTkpiVTU1Wkd4M2FVOXNkMmxWUXpCNVRsUmFZMGxwZUdOSmJYUXdaVlozYVU5c2QybFNWVTVqU1dsNFkwbHVhR05KYW5CalNXdEtjV1Z0YUhGVWF6RnhVVlpKZEV4WGNEWmthbHBxVVdreFVHRllVbE5pTURGRVpHeEtXVlpYV2sxWFZGSmhZVlJHV1dWVE1IZFZiV1JqU1dsNFkwbHViR05KYW5CalNXNXdWRll4U25WTlZXaERWbGRqTUZKcVRrUk9iVGxxV1RGS2ExTXpXakZWTW5RelRXcE9TMUZ0YUZoU01IaDFaRVZPYzAxWGNFdGphbEpqU1c0d2FVeERTbXRhV0U0d1NXcHZhV1V4ZDJsWlYzaHVXRU5KTmxoRFNrWlZla2t4VG14M2FVeEdkMmxaTTBveVdFTkpObGhEU2xGTVZFa3hUbXgzYVV4R2QybGhNMUkxV0VOSk5saERTa1pSTVhkcFRFWjNhV1ZHZDJsUGJIZHBWbXhvZWxGdVZsQlhibVJYWVcxb2RscHJjRmRPUjNSQ1lVZEthRTV1WkhWTlZWWmFVa2hrVmxOWGRHNVhSMGw1V214YWRWUkVhRFJaTVhkcFRFWjNhV1ZXZDJsUGJIZHBZVVJTYlZSRVZsSmthbEpHVjFoUk0xZEhVa3hqVjFKS1pWUkdZVk51VFRCWU1VWllWMVZTY2xkVVJqWldXSEJVWWpCck1rMVZORE5YVm5kcFpsTkpjMGx0Vm5WWk1FWnpXbmxKTmtsclJYbE9WRnBJVVRBd2FVeERTbnBoVjJSMVlWYzFibEZYZUc1SmFtOXBVbFpOZVU1VVdXbE1RMHB2V1ZoT2IxRlhlRzVKYW05cFZUQm9Ra3hVU1RGT2FVbHpTVzE0YkZwSFpHeGphMDUyWW01U2VWbFhUakJSVjFKclkyMVdlbU41U1RaSmFrSTBUMGRSTUUxRVpHaE5WR041VFdwWmVrMHlTbXRhUkVacldUSlplVTFxUlRCT2VsSnBXbFJrYUU1RVVtcE5SRlpyVGpKTmVWcHBTWE5KYlhoc1drZGtiR05zVG5CYU1qVnNZMnRHYTFwSVNteGpNMDFwVDJsSmQyVkVSVE5aYlZGNFRXMU5lVTFVVFRCWlYxcHFUVmRaTWxwVWEzcE5SRXBvVGxSTmVWcFhXbXhOZWtKcVRWUnNhVTlYVlRWTlJFMXBURU5LZDJJeU9WVmlNVUoyWTJ0U2JHSkhSalZKYW05NFRVUkJkMDFEZDJsalJ6bDJWa2M1VVdJelFrVmFWM2hvWlZOSk5rMXFRWGROUkVGelNXNUNkbUl4VW5aVk1sWnFZMjFXTUZKSFZuTlpXR3RwVDJwRk5FMUVRWGROUTNkcFdUSnNkMkZIVm5sWmJYaDJXVEowUlZvelRqQkphbTlwVWtSR2FWSXlNVTFpTURWV1lXNWthMVF6UmpCU2VtaHFXV3R3ZFZWWVFqWmhNMmN4VGpGU1ZscFViRWxOUlZwWFdrVnNjVTVVYUZwUFEwbHpTVzFLYzJJeVRuSlJNamwwWWxkc01HSlhWblZrUTBrMlNXeG9WbU5FWjNwaWJYQk5WbFpaTkZkVk1IUldibHAzV2xab2FWRlhNVlJOYXpGWVVUTnJkMk50V1RWV1YyUjFZakZvUTJKdE9IUmlNazFwVEVOS2VscFhUbmxhV0ZKRVlqSXhkR0ZZVW5SYVZ6VXdTV3B2YVU5Rk5WTmFiVVpJWVZWUmVsSlhUbkJWTWpWeFZtdFplbVZyZEZsYU1VWlRZM2t4VTJOVmNESlpiWFExVkcxd1lWVXhjRlpUUkdSSldubEpjMGx0Ykd0SmFtOXBWVEExYjA5WWJFeFhSMGw1V2xkb2MxWnJhRk5YVlVwS1dsZHpkR1Z0WkdGV1YyZDVZbFpPVkdKNlJuRmpSM2h2VGpCc2FFeFVValZWVTBvNVRFTktjRmxZVVdsUGFrVXlUWHByTTA5VVNUTk5SR3c1TG5WMU5XUkNka05YTTNveFZqWjNaV3N3Y1hSMGFuWTNhMmxmY1V4RFoySjZObUZ4U1dGMGJWVlhVWEptVTIxNE1qTkpRbFV3Um1aU1EwbEtSWFZyYkV4TVZ6VkVVVzR4UkhSVVUxTmtXbk5ZU2toM2REQjNJaXdpYVdGMElqb3hOak01TnpreU56QTVmUS5tZndBZjRlVVd0N040UEVPd3dHMjNRSEpFNXI3NW50ODNKMWhDVWdSNkVxRWk4dVlJN0t2QWpZdzdod2VpVHJqZ1NMT2w4NnlDT2lVSk9ZZko3OGZjQSIsInR5cGUiOiJ2ZXJpZmljYXRpb25SZXF1ZXN0IiwiaWF0IjoxNjM5NzkyNzU0fQ.0BaQBLgBautFNwzY9TrPKy1xEl4kMvvXqhGhJTi900GI2Yu5mdPSEQKQrV9UTGhCMrtDsGkBqQMC3DHW85QyJA"
+          }
+        ]
+      }
+    }
+  }
+}

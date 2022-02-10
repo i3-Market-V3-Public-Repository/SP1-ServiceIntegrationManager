@@ -1,0 +1,766 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "i3market_auditable_accounting",
+    "version": "0.1.0",
+    "description": "i3Market Auditable Accounting Component",
+    "contact": {
+      "name": "Jose Luis Muñoz-Tapia",
+      "email": "jose.luis.munoz@upc.edu"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "paths": {
+    "/calculateMerkleRoot": {
+      "post": {
+        "x-controller-name": "RegistryBlockchainController",
+        "x-operation-name": "calculateMerkleTree",
+        "tags": [
+          "RegistryBlockchainController"
+        ],
+        "responses": {
+          "200": {
+            "description": "UPDATE response object for updating the Merkle Root",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "blockchainNetwork": {
+                      "type": "string"
+                    },
+                    "smartContractAddress": {
+                      "type": "string"
+                    },
+                    "response": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 2
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "blockchain connection error",
+                            "there are not new registries"
+                          ]
+                        },
+                        "MerkleRoot": {
+                          "type": "string"
+                        },
+                        "txHash": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "RegistryBlockchainController.calculateMerkleTree"
+      }
+    },
+    "/getCurrentRoot": {
+      "get": {
+        "x-controller-name": "RegistryBlockchainController",
+        "x-operation-name": "getCurrentRoot",
+        "tags": [
+          "RegistryBlockchainController"
+        ],
+        "responses": {
+          "200": {
+            "description": "GET response of object for getting the current Merkle Root",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "blockchainNetwork": {
+                      "type": "string"
+                    },
+                    "smartContractAddress": {
+                      "type": "string"
+                    },
+                    "response": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "blockchain connection error"
+                          ]
+                        },
+                        "MerkleRoot": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "RegistryBlockchainController.getCurrentRoot"
+      }
+    },
+    "/registries/count": {
+      "get": {
+        "x-controller-name": "RegistryController",
+        "x-operation-name": "count",
+        "tags": [
+          "RegistryController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Registry model count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/loopback.Count"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "where",
+            "in": "query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Registry.WhereFilter",
+                  "additionalProperties": true,
+                  "x-typescript-type": "@loopback/repository#Where<Registry>"
+                }
+              }
+            }
+          }
+        ],
+        "operationId": "RegistryController.count"
+      }
+    },
+    "/registries/{id}": {
+      "put": {
+        "x-controller-name": "RegistryController",
+        "x-operation-name": "replaceById",
+        "tags": [
+          "RegistryController"
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Registry PUT success"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "number"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registry"
+              }
+            }
+          },
+          "x-parameter-index": 1
+        },
+        "operationId": "RegistryController.replaceById"
+      },
+      "patch": {
+        "x-controller-name": "RegistryController",
+        "x-operation-name": "updateById",
+        "tags": [
+          "RegistryController"
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Registry PATCH success"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "number"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistryPartial"
+              }
+            }
+          },
+          "x-parameter-index": 1
+        },
+        "operationId": "RegistryController.updateById"
+      },
+      "get": {
+        "x-controller-name": "RegistryController",
+        "x-operation-name": "findById",
+        "tags": [
+          "RegistryController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Registry model instance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistryWithRelations"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "number"
+            },
+            "required": true
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Registry.Filter"
+                }
+              }
+            }
+          }
+        ],
+        "operationId": "RegistryController.findById"
+      },
+      "delete": {
+        "x-controller-name": "RegistryController",
+        "x-operation-name": "deleteById",
+        "tags": [
+          "RegistryController"
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Registry DELETE success"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "number"
+            },
+            "required": true
+          }
+        ],
+        "operationId": "RegistryController.deleteById"
+      }
+    },
+    "/registries": {
+      "post": {
+        "x-controller-name": "RegistryController",
+        "x-operation-name": "create",
+        "tags": [
+          "RegistryController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Registry model instance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Registry"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewRegistry"
+              }
+            }
+          }
+        },
+        "operationId": "RegistryController.create"
+      },
+      "patch": {
+        "x-controller-name": "RegistryController",
+        "x-operation-name": "updateAll",
+        "tags": [
+          "RegistryController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Registry PATCH success count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/loopback.Count"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "where",
+            "in": "query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Registry.WhereFilter",
+                  "additionalProperties": true,
+                  "x-typescript-type": "@loopback/repository#Where<Registry>"
+                }
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistryPartial"
+              }
+            }
+          }
+        },
+        "operationId": "RegistryController.updateAll"
+      },
+      "get": {
+        "x-controller-name": "RegistryController",
+        "x-operation-name": "find",
+        "tags": [
+          "RegistryController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of Registry model instances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RegistryWithRelations"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Registry.Filter1"
+                }
+              }
+            }
+          }
+        ],
+        "operationId": "RegistryController.find"
+      }
+    },
+    "/updateRegistries": {
+      "post": {
+        "x-controller-name": "RegistryBlockchainController",
+        "x-operation-name": "updateTxStatus",
+        "tags": [
+          "RegistryBlockchainController"
+        ],
+        "responses": {
+          "200": {
+            "description": "GET response of object for getting the pending actions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "blockchainNetwork": {
+                      "type": "string"
+                    },
+                    "smartContractAddress": {
+                      "type": "string"
+                    },
+                    "response": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "blockchain connection error"
+                          ]
+                        },
+                        "newTxSentToBlockchain": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "txUpdatedGasPrice": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "newConfirmedTx": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "RegistryBlockchainController.updateTxStatus"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://95.211.3.244:8090"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Registry": {
+        "title": "Registry",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "dateOfReception": {
+            "type": "number"
+          },
+          "dataHash": {
+            "type": "string"
+          },
+          "merkleRoot": {
+            "type": "string"
+          },
+          "merkleProof": {
+            "type": "array",
+            "items": {}
+          },
+          "readyForRegistration": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewRegistry": {
+        "title": "NewRegistry",
+        "type": "object",
+        "description": "(tsType: Omit<Registry, 'id' | 'dateOfReception' | 'merkleRoot' | 'merkleProof' | 'readyForRegistration'>, schemaOptions: { title: 'NewRegistry', exclude: [ 'id', 'dateOfReception', 'merkleRoot', 'merkleProof', 'readyForRegistration' ] })",
+        "properties": {
+          "dataHash": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "x-typescript-type": "Omit<Registry, 'id' | 'dateOfReception' | 'merkleRoot' | 'merkleProof' | 'readyForRegistration'>"
+      },
+      "RegistryWithRelations": {
+        "title": "RegistryWithRelations",
+        "type": "object",
+        "description": "(tsType: RegistryWithRelations, schemaOptions: { includeRelations: true })",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "dateOfReception": {
+            "type": "number"
+          },
+          "dataHash": {
+            "type": "string"
+          },
+          "merkleRoot": {
+            "type": "string"
+          },
+          "merkleProof": {
+            "type": "array",
+            "items": {}
+          },
+          "readyForRegistration": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "x-typescript-type": "RegistryWithRelations"
+      },
+      "RegistryPartial": {
+        "title": "RegistryPartial",
+        "type": "object",
+        "description": "(tsType: Partial<Registry>, schemaOptions: { partial: true })",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "dateOfReception": {
+            "type": "number"
+          },
+          "dataHash": {
+            "type": "string"
+          },
+          "merkleRoot": {
+            "type": "string"
+          },
+          "merkleProof": {
+            "type": "array",
+            "items": {}
+          },
+          "readyForRegistration": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "x-typescript-type": "Partial<Registry>"
+      },
+      "loopback.Count": {
+        "type": "object",
+        "title": "loopback.Count",
+        "x-typescript-type": "@loopback/repository#Count",
+        "properties": {
+          "count": {
+            "type": "number"
+          }
+        }
+      },
+      "Registry.Filter": {
+        "type": "object",
+        "title": "Registry.Filter",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 100
+          },
+          "skip": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "order": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "fields": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "boolean"
+                  },
+                  "dateOfReception": {
+                    "type": "boolean"
+                  },
+                  "dataHash": {
+                    "type": "boolean"
+                  },
+                  "merkleRoot": {
+                    "type": "boolean"
+                  },
+                  "merkleProof": {
+                    "type": "boolean"
+                  },
+                  "readyForRegistration": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "id",
+                    "dateOfReception",
+                    "dataHash",
+                    "merkleRoot",
+                    "merkleProof",
+                    "readyForRegistration"
+                  ],
+                  "example": "id"
+                },
+                "uniqueItems": true
+              }
+            ],
+            "title": "Registry.Fields"
+          }
+        },
+        "additionalProperties": false,
+        "x-typescript-type": "@loopback/repository#Filter<Registry>"
+      },
+      "Registry.Filter1": {
+        "type": "object",
+        "title": "Registry.Filter",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 100
+          },
+          "skip": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "order": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "where": {
+            "title": "Registry.WhereFilter",
+            "type": "object",
+            "additionalProperties": true
+          },
+          "fields": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "boolean"
+                  },
+                  "dateOfReception": {
+                    "type": "boolean"
+                  },
+                  "dataHash": {
+                    "type": "boolean"
+                  },
+                  "merkleRoot": {
+                    "type": "boolean"
+                  },
+                  "merkleProof": {
+                    "type": "boolean"
+                  },
+                  "readyForRegistration": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "id",
+                    "dateOfReception",
+                    "dataHash",
+                    "merkleRoot",
+                    "merkleProof",
+                    "readyForRegistration"
+                  ],
+                  "example": "id"
+                },
+                "uniqueItems": true
+              }
+            ],
+            "title": "Registry.Fields"
+          }
+        },
+        "additionalProperties": false,
+        "x-typescript-type": "@loopback/repository#Filter<Registry>"
+      }
+    }
+  }
+}

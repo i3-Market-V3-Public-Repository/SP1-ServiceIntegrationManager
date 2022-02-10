@@ -1,0 +1,389 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "greeter-service",
+    "version": "0.0.1",
+    "description": "Greeter Service of the i3-Market Project",
+    "contact": {
+      "name": "Víctor Diví",
+      "email": "victor.divi@upc.edu"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "paths": {
+    "/farewell/body": {
+      "post": {
+        "x-controller-name": "FarewellController",
+        "x-operation-name": "farewellBody",
+        "tags": [
+          "FarewellController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Farewell Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarewellResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          },
+          {
+            "openIdConnect": []
+          }
+        ],
+        "requestBody": {
+          "description": "Farewell Request Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FarewellRequestBody"
+              }
+            }
+          }
+        },
+        "operationId": "FarewellController.farewellBody"
+      }
+    },
+    "/farewell/headerParams": {
+      "get": {
+        "x-controller-name": "FarewellController",
+        "x-operation-name": "farewellHeaderParams",
+        "tags": [
+          "FarewellController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Farewell Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarewellResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          },
+          {
+            "openIdConnect": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "age",
+            "in": "header",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "operationId": "FarewellController.farewellHeaderParams"
+      }
+    },
+    "/farewell/pathParams/{name}/{age}": {
+      "get": {
+        "x-controller-name": "FarewellController",
+        "x-operation-name": "farewellPathParams",
+        "tags": [
+          "FarewellController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Farewell Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarewellResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          },
+          {
+            "openIdConnect": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "age",
+            "in": "path",
+            "schema": {
+              "type": "number"
+            },
+            "required": true
+          }
+        ],
+        "operationId": "FarewellController.farewellPathParams"
+      }
+    },
+    "/farewell/queryParams": {
+      "get": {
+        "x-controller-name": "FarewellController",
+        "x-operation-name": "farewellQueryParams",
+        "tags": [
+          "FarewellController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Farewell Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarewellResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          },
+          {
+            "openIdConnect": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "age",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "operationId": "FarewellController.farewellQueryParams"
+      }
+    },
+    "/hello/authenticated": {
+      "get": {
+        "x-controller-name": "HelloController",
+        "x-operation-name": "helloAuthenticated",
+        "tags": [
+          "HelloController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Hello Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelloResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          },
+          {
+            "openIdConnect": []
+          }
+        ],
+        "operationId": "HelloController.helloAuthenticated"
+      }
+    },
+    "/hello/consumer": {
+      "get": {
+        "x-controller-name": "HelloController",
+        "x-operation-name": "helloConsumer",
+        "tags": [
+          "HelloController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Hello Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelloResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          },
+          {
+            "openIdConnect": [
+              "consumer"
+            ]
+          }
+        ],
+        "operationId": "HelloController.helloConsumer"
+      }
+    },
+    "/hello/provider": {
+      "get": {
+        "x-controller-name": "HelloController",
+        "x-operation-name": "helloProvider",
+        "tags": [
+          "HelloController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Hello Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelloResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          },
+          {
+            "openIdConnect": [
+              "provider"
+            ]
+          }
+        ],
+        "operationId": "HelloController.helloProvider"
+      }
+    },
+    "/hello/unauthenticated/{name}": {
+      "get": {
+        "x-controller-name": "HelloController",
+        "x-operation-name": "helloUnauthenticated",
+        "tags": [
+          "HelloController"
+        ],
+        "responses": {
+          "200": {
+            "description": "Hello Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelloResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "operationId": "HelloController.helloUnauthenticated"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://95.211.3.244:3333"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "FarewellResponse": {
+        "type": "object",
+        "title": "FarewellResponse",
+        "properties": {
+          "farewell": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "FarewellRequestBody": {
+        "type": "object",
+        "title": "FarewellRequestBody",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        }
+      },
+      "HelloResponse": {
+        "type": "object",
+        "title": "HelloResponse",
+        "properties": {
+          "greeting": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "backplane-authorization"
+      },
+      "openIdConnect": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "backplane-authorization"
+      }
+    }
+  }
+}

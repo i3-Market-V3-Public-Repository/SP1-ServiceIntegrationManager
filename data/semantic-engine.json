@@ -403,10 +403,7 @@
 					"200": {
 						"description": "OK",
 						"schema": {
-							"type": "array",
-							"items": {
-								"$ref": "#/definitions/Offerings"
-							}
+							"$ref": "#/definitions/Offerings"
 						}
 					},
 					"400": {
@@ -1466,7 +1463,7 @@
 		"ProvidersList": {
 			"type": "object",
 			"properties": {
-				"providerId": {
+				"provider": {
 					"type": "string"
 				}
 			},

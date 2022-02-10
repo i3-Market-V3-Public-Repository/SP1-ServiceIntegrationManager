@@ -1,0 +1,357 @@
+{
+    "components": {
+        "schemas": {
+            "SearchEngineIndexCreateRecord": {
+                "required": [
+                    "location",
+                    "data_categories"
+                ],
+                "properties": {
+                    "data_categories": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "$ref": "#/components/schemas/URI"
+                    }
+                },
+                "description": "Federated semantic search engine index create/update record",
+                "type": "object",
+                "example": {
+                    "data_categories": [
+                        "society",
+                        "Wellbeing"
+                    ],
+                    "description": "An example search engine",
+                    "location": "http://example.org/seed/search"
+                }
+            },
+            "URI": {
+                "format": "uri",
+                "type": "string",
+                "example": "http://example.org/seed/search"
+            },
+            "DataCategoryRecord": {
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "description": "Data category name",
+                        "maxLength": 32,
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Optional description of the data category",
+                        "maxLength": 160,
+                        "type": "string"
+                    }
+                },
+                "description": "Data category record",
+                "type": "object",
+                "example": {
+                    "name": "Science",
+                    "description": "Science and technology"
+                }
+            },
+            "SearchEngineIndexRecord": {
+                "required": [
+                    "uuid",
+                    "location",
+                    "registered_by",
+                    "data_categories"
+                ],
+                "properties": {
+                    "registered_by": {
+                        "description": "Common name value from the client certificate of the registration request",
+                        "maxLength": 64,
+                        "type": "string"
+                    },
+                    "data_categories": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "A list of data category names the search engine handles",
+                        "type": "array"
+                    },
+                    "description": {
+                        "description": "Optional description of the search engine",
+                        "maxLength": 160,
+                        "type": "string"
+                    },
+                    "location": {
+                        "format": "uri",
+                        "description": "Location of the search engine",
+                        "maxLength": 1024,
+                        "type": "string",
+                        "example": "http://example.org/seed/search"
+                    },
+                    "uuid": {
+                        "format": "uuid",
+                        "description": "Universally unique identifier of the record assigned by the index system",
+                        "type": "string",
+                        "example": "00000000-0000-0000-0000-000000000000"
+                    }
+                },
+                "description": "Federated query semantic search engine index record",
+                "type": "object",
+                "example": {
+                    "registered_by": "admin.example.org",
+                    "data_categories": [
+                        "Environment",
+                        "Government"
+                    ],
+                    "description": "An example semantic search engine",
+                    "location": "http://example.org/seed/search",
+                    "uuid": "05a0acc1-aa28-4bf1-a823-51fd94bf2e68"
+                }
+            },
+            "UUID": {
+                "format": "uuid",
+                "type": "string",
+                "example": "00000000-0000-0000-0000-000000000000"
+            }
+        }
+    },
+    "info": {
+        "title": "i3-MARKET distributed storage services",
+        "version": "0.0.1",
+        "description": "Distributed storage services for the i3-MARKET platform",
+        "license": {
+        "name": "Apache 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "openapi": "3.0.0",
+    "servers": [
+        {
+            "url": "http://95.211.3.244:7500"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Semantic search engine index",
+            "description": "Provides a list of federated semantic search engines with associated metainformation. The index can contain up to 1000 records. The optional query parameter \"category\" can be used for filtering to include only the records of search engines that have the specified data category associated to them."
+        },
+        {
+            "name": "Semantic search engine record",
+            "description": "Returns the entry of a specific search engine from the index."
+        },
+        {
+            "name": "Semantic search engine registration",
+            "description": "Adds semantic search engine records to the index. Requires mutual TLS authentication. One identity can register up to 10 records. Concurrent requests from the same identity may be refused with and HTTP error response. The specified data categories must already exist in the system."
+        },
+        {
+            "name": "Semantic search engine record update",
+            "description": "Updates an existing semantic search engine record. Requires mutual TLS authentication."
+        },
+        {
+            "name": "Delete semantic search engine record",
+            "description": "Removes an existing semantic search engine record from the index. Only records registered by the same identity can be deleted. Requires mutual TLS authentication."
+        },
+        {
+            "name": "Data categories",
+            "description": "Provides a list of data categories of federated semantic search. There can be up to 1000 categories."
+        }
+    ],
+    "paths": {
+        "/search_engine_index": {
+            "get": {
+                "tags": [
+                    "Semantic search engine index"
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid `category`"
+                    },
+                    "200": {
+                        "content": {
+                            "application/json;charset=utf-8": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/SearchEngineIndexRecord"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                },
+                "parameters": [
+                    {
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "name": "category",
+                        "in": "query"
+                    }
+                ]
+            },
+            "post": {
+                "requestBody": {
+                    "content": {
+                        "application/json;charset=utf-8": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SearchEngineIndexCreateRecord"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Semantic search engine registration"
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid `body`"
+                    },
+                    "201": {
+                        "content": {
+                            "application/json;charset=utf-8": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SearchEngineIndexRecord"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/data_categories": {
+            "get": {
+                "tags": [
+                    "Data categories"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json;charset=utf-8": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/DataCategoryRecord"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/search_engine_index/{UUID}": {
+            "put": {
+                "requestBody": {
+                    "content": {
+                        "application/json;charset=utf-8": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SearchEngineIndexCreateRecord"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Semantic search engine record update"
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid `body`"
+                    },
+                    "200": {
+                        "content": {
+                            "application/json;charset=utf-8": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SearchEngineIndexRecord"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "description": "`UUID` not found"
+                    }
+                },
+                "parameters": [
+                    {
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        },
+                        "name": "UUID",
+                        "in": "path"
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "Semantic search engine record"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json;charset=utf-8": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SearchEngineIndexRecord"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "description": "`UUID` not found"
+                    }
+                },
+                "parameters": [
+                    {
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        },
+                        "name": "UUID",
+                        "in": "path"
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Delete semantic search engine record"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json;charset=utf-8": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SearchEngineIndexRecord"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "description": "`UUID` not found"
+                    }
+                },
+                "parameters": [
+                    {
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        },
+                        "name": "UUID",
+                        "in": "path"
+                    }
+                ]
+            }
+        }
+    }
+}
