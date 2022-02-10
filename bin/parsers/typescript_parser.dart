@@ -11,7 +11,6 @@ import 'type_parser.dart';
 
 class Lb4ControllerDefinition extends GrammarDefinition {
   @override
-  //TODO: implement
   Parser start() => (ref0(importSection) & ref0(classDefinition)).map((value) => Controller(value[0], value[1])).end();
 
   Parser importSection() => ref0(importStatement).star().map((value) => ImportSectionExt.fromDynamic(value).merge());

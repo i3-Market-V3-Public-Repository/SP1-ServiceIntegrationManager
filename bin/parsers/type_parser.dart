@@ -7,11 +7,12 @@ class TypeDefinition extends GrammarDefinition {
   @override
   Parser start() => ref0(type);
 
-  Parser type() => char('(').trim() & ref0(unionType) & char(')').trim() & ref0(arrayModifier) | ref0(unionType);
+  Parser type() => ref0(lParen) & ref0(unionType) & ref0(rParen) & ref0(arrayModifier) | ref0(unionType);
 
-  Parser unionType() => (ref0(typeReference) & ref0(arrayModifier)).separatedBy(ref0(bar));
+  Parser unionType() =>
+      ((ref0(typeReference) | ref0(objectType) | ref0(stringLiteral)) & ref0(arrayModifier)).separatedBy(ref0(bar));
 
-  Parser arrayModifier() => (string('[').trim() & string(']').trim()).star();
+  Parser arrayModifier() => (ref0(lBrace) & ref0(rBrace)).star();
 
   Parser typeReference() => ref0(typeName) & ref0(typeArguments).optional();
 
@@ -21,4 +22,21 @@ class TypeDefinition extends GrammarDefinition {
 
   Parser typeArgumentList() =>
       ref0(type).separatedBy(ref0(comma), includeSeparators: false, optionalSeparatorAtEnd: true);
+
+  Parser objectType() =>
+      ref0(lBracket) &
+      (ref0(objectTypeElement).separatedBy(ref0(semicolon), optionalSeparatorAtEnd: true) | ref0(dictType)).optional() &
+      ref0(rBracket);
+
+  Parser objectTypeElement() => ref0(identifier) & char('?').optional() & ref0(colon) & ref0(type);
+
+  Parser dictType() =>
+      ref0(lBrace) &
+      ref0(identifier) &
+      ref0(colon) &
+      ref0(type) &
+      ref0(rBrace) &
+      ref0(colon) &
+      ref0(type) &
+      ref0(semicolon);
 }

@@ -12,26 +12,28 @@ Parser ws() => ref0(space).plus().flatten();
 
 Parser wsOpt() => ref0(space).star().flatten();
 
-Parser lParen() => char('(').trim();
+Parser lParen() => char('(').trim(ref0(space), ref0(space));
 
-Parser rParen() => char(')').trim();
+Parser rParen() => char(')').trim(ref0(space), ref0(space));
 
-Parser lBracket() => char('{').trim();
+Parser lBracket() => char('{').trim(ref0(space), ref0(space));
 
-Parser rBracket() => char('}').trim();
+Parser rBracket() => char('}').trim(ref0(space), ref0(space));
 
-Parser lBrace() => char('[').trim();
+Parser lBrace() => char('[').trim(ref0(space), ref0(space));
 
-Parser rBrace() => char(']').trim();
+Parser rBrace() => char(']').trim(ref0(space), ref0(space));
 
-Parser lAngleBracket() => char('<').trim();
+Parser lAngleBracket() => char('<').trim(ref0(space), ref0(space));
 
-Parser rAngleBracket() => char('>').trim();
+Parser rAngleBracket() => char('>').trim(ref0(space), ref0(space));
 
-Parser comma() => char(',').trim();
+Parser comma() => char(',').trim(ref0(space), ref0(space));
 
-Parser equals() => char('=').trim();
+Parser equals() => char('=').trim(ref0(space), ref0(space));
 
-Parser colon() => char(':').trim();
+Parser colon() => char(':').trim(ref0(space), ref0(space));
 
-Parser bar() => char('|').trim();
+Parser semicolon() => char(';').trim(ref0(space), ref0(space));
+
+Parser bar() => char('|').trim(ref0(space), ref0(space));

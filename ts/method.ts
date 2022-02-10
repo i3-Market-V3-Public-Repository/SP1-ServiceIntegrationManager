@@ -1,68 +1,61 @@
 /**
  *
  *
- * @param _requestBody dataOffering
- * @returns OK
+ * @param where
+ * @returns Registry model count
  */
-@operation('post', '/api/registration/data-offering', {
+@operation('get', '/registries/count', {
+    'x-controller-name': 'RegistryController',
+    'x-operation-name': 'count',
     tags: [
-        'registration-offering',
+        'RegistryController',
     ],
-    summary: 'register a data offering',
-    operationId: 'dataOfferingUsingPOST',
-    requestBody: {
-        content: {
-            'application/json': {
-                schema: {
-                    $ref: '#/components/schemas/DataOffering',
-                },
-            },
-        },
-        description: 'dataOffering',
-        required: true,
-    },
     responses: {
         '200': {
-            description: 'OK',
+            description: 'Registry model count',
             content: {
-                '*/*': {
+                'application/json': {
                     schema: {
-                        type: 'array',
-                        items: {
-                            $ref: '#/components/schemas/DataOfferingId',
-                        },
+                        $ref: '#/components/schemas/loopback.Count',
                     },
                 },
             },
         },
-        '201': {
-            description: 'Created',
-        },
-        '400': {
-            description: 'failed to save offerings',
-        },
-        '401': {
-            description: 'Unauthorized',
-        },
-        '403': {
-            description: 'Forbidden',
-        },
-        '404': {
-            description: 'Not Found',
-        },
     },
-    deprecated: false,
+    parameters: [
+        {
+            name: 'where',
+            in: 'query',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        title: 'Registry.WhereFilter',
+                        additionalProperties: true,
+                        'x-typescript-type': '@loopback/repository#Where<Registry>',
+                    },
+                },
+            },
+        },
+    ],
+    operationId: 'RegistryController.count',
 })
-async dataOfferingUsingPost(@requestBody({
+async count(@param({
+    name: 'where',
+    in: 'query',
     content: {
         'application/json': {
             schema: {
-                $ref: '#/components/schemas/DataOffering',
+                type: 'object',
+                title: 'Registry.WhereFilter',
+                additionalProperties: true,
+                'x-typescript-type': '@loopback/repository#Where<Registry>',
             },
         },
     },
-    description: 'dataOffering',
-    required: true,
-}) _requestBody: DataOffering): Promise<DataOfferingId[]> {
+}) where: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [additionalProperty: string]: any;
+} | undefined): Promise<LoopbackCount> {
     throw new Error('Not implemented');
 }
