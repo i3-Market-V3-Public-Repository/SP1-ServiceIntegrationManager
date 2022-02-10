@@ -26,7 +26,7 @@ class Lb4ControllerDefinition extends GrammarDefinition {
           ref0(wsOpt) &
           char(';').optional() &
           Token.newlineParser().optional())
-      .map((value) => ImportStatement((value[2] as List).cast<String>(), value[6]));
+      .map((value) => ImportStatement((value[2] as List).cast<String>(), value[6], surroundSource: false));
 
   Parser importBody() =>
       ref0(identifier).separatedBy(ref0(comma), includeSeparators: false, optionalSeparatorAtEnd: true);
@@ -80,7 +80,7 @@ class Lb4ControllerDefinition extends GrammarDefinition {
           ref0(rBracket))
       .map((value) => Method(
           documentation: value[0],
-          annotations: value[1],
+          annotations: (value[1] as List).cast<Annotation>(),
           async: value[3] != null,
           name: value[4],
           parameters: (value[6] as List? ?? []).cast<Parameter>(),

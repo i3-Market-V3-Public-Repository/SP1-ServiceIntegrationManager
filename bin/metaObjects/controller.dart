@@ -6,4 +6,7 @@ class Controller {
   Class classDefinition;
 
   Controller(this.imports, this.classDefinition);
+
+  @override
+  String toString() => '${imports.join('\n')}\n\n$classDefinition';
 }

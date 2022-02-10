@@ -4,8 +4,9 @@ class ImportStatement {
   Set<String> importedElements;
   String sourcePath;
 
-  ImportStatement(Iterable<String> importedElements, this.sourcePath)
-      : importedElements = SplayTreeSet.of(importedElements);
+  ImportStatement(Iterable<String> importedElements, String sourcePath, {bool surroundSource = true})
+      : importedElements = SplayTreeSet.of(importedElements),
+        sourcePath = surroundSource ? "'$sourcePath'" : sourcePath;
 
   bool merge(ImportStatement other) {
     if (other.sourcePath == sourcePath) {

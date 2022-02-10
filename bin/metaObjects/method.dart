@@ -56,6 +56,6 @@ class Constructor {
   Constructor(this.parameters, this.body);
 
   @override
-  String toString() => 'constructor (${parameters.join('\n')}) {\n'
+  String toString() => 'constructor (${parameters.join(',\n')}) {\n'
       '$body}';
 }
