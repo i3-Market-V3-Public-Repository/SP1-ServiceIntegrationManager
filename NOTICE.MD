@@ -1,3 +1,4 @@
+<!---
 #  Copyright 2020-2022 i3-MARKET Consortium:
 #
 #  ATHENS UNIVERSITY OF ECONOMICS AND BUSINESS - RESEARCH CENTER
@@ -25,25 +26,5 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
-name: service_integration_manager
-description: Service integration tool to generate code automatically to integrate the backplane API with the i3-Marker microservices
-# version: 1.0.0
-# homepage: https://www.example.com
-
-environment:
-  sdk: '>=2.16.0 <3.0.0'
-
-dependencies:
-  path: ^1.8.0
-  validators2: ^3.0.0
-  recase: ^4.0.0-nullsafety.0
-  http: ^0.13.1
-  yaml: ^3.1.0
-  petitparser: ^4.1.0
-  tuple: ^2.0.0
-
-
-dev_dependencies:
-  test: 1.20.1
-  pedantic: ^1.11.0
+#
+-->
