@@ -309,9 +309,11 @@ void customizeDatasources(String projectPath, String serviceName) {
     if (index == -1) continue;
     final indexEnd = content.indexWhere((element) => element == '  }', index);
     if (indexEnd == -1) continue;
-    for(var i = index+1; i < indexEnd; i++) { //in case there exists more than one line (it shouldn't)
+    for (var i = index + 1; i < indexEnd; i++) {
+      //in case there exists more than one line (it shouldn't)
       final operationRegexp = RegExp(r'return (.*);');
-      if (operationRegexp.hasMatch(content.elementAt(i))){ // found, replace return
+      if (operationRegexp.hasMatch(content.elementAt(i))) {
+        // found, replace return
         final itemToReturn = operationRegexp.firstMatch(content.elementAt(i))?.group(1);
         final newLine = '   return {isOpenApi: true, headers: response.headers, value: ($itemToReturn)};';
         content[i] = newLine;
@@ -328,14 +330,15 @@ void finishControllers(String projectPath, String serviceName) {
     final controllerContent = controllerFile.readAsStringSync();
     final parsedController = Lb4ControllerDefinition().build().parse(controllerContent);
     final Controller controller = parsedController.value;
-    protectControllerGrammar(controller);
+    protectControllerGrammar(controller, serviceName);
     connectControllerGrammar(controller, projectPath, serviceName);
+    removeRequestBodyRefs(controller);
     controllerFile.writeAsStringSync(controller.toString());
     formatController(controllerFile);
   }
 }
 
-void protectControllerGrammar(Controller controller) {
+void protectControllerGrammar(Controller controller, String serviceName) {
   final newImports = [
     ImportStatement(['authenticate'], '@loopback/authentication'),
     ImportStatement(['authorize'], '@loopback/authorization'),
@@ -351,13 +354,15 @@ void protectControllerGrammar(Controller controller) {
     final operationAnnotation = method.annotations.firstWhere((annotation) => annotation.name == 'operation');
     final verb = operationAnnotation.parameters[0].toUpperCase();
     final path = operationAnnotation.parameters[1];
+    final newPath = '/$serviceName$path';
+    operationAnnotation.parameters[1] = newPath;
     final spec = loadYaml(operationAnnotation.parameters[2]) as Map;
     final security = spec['security'] as List?;
     if (security != null) {
       method.annotations.add(Annotation(name: 'authenticate', parameters: ['JWT_STRATEGY_NAME']));
       final scopes =
           (security.firstWhere((element) => (element as Map).containsKey('openIdConnect'))['openIdConnect'] as List);
-      print('\t$verb: $path Scopes: $scopes');
+      print('\t$verb: $path -> $newPath || Scopes: $scopes');
       if (scopes.isNotEmpty) {
         final scopesString = jsonEncode(scopes).replaceAll('"', "'");
         method.annotations.add(Annotation(name: 'authorize', parameters: ['{scopes: $scopesString}']));
@@ -366,14 +371,14 @@ void protectControllerGrammar(Controller controller) {
           "const backplaneToken = this.request.headers['authorization']!;\n"
           '${method.body}';
     } else {
-      print('\t$verb: $path No security');
+      print('\t$verb: $path -> $newPath || No security');
     }
     final numParams = method.parameters.length;
     method.parameters.removeWhere((param) => ['backplaneToken', 'backplaneAuthorization'].contains(param.name));
     if (numParams != method.parameters.length) {
       method.parameters.add(Parameter(
           annotation: Annotation(name: 'inject', parameters: ['SecurityBindings.USER']),
-          name: 'user',
+          name: 'backplaneUserProfile',
           type: 'BackplaneUserProfile'));
     }
 
@@ -384,7 +389,8 @@ void protectControllerGrammar(Controller controller) {
         RegExp(r" *\{\s*name\: 'backplane-token',\s*in: 'header',\s*required: true,\s*},\s*"), '');
 
     method.documentation = method.documentation.replaceAll(RegExp(r'\* @param backplaneAuthorization\s+(?=\*)'), '');
-    method.documentation = method.documentation.replaceAll(RegExp(r'\* @param backplaneToken'), '* @param user');
+    method.documentation =
+        method.documentation.replaceAll(RegExp(r'\* @param backplaneToken'), '* @param backplaneUserProfile');
   }
 }
 
@@ -417,20 +423,26 @@ void connectControllerGrammar(Controller controller, String projectPath, String 
 
   controller.classDefinition.variables.add('private readonly secret: string;');
   controller.classDefinition.constructor.body += "this.secret = this.secrets['$subsystemName'];\n";
+
+  print('\tNumber of endpoints: ${controller.classDefinition.methods.length}');
   for (final endpoint in controller.classDefinition.methods) {
     final endpointParams = endpoint.parameters.map((e) => e.name).join(', ');
-    final functionParams = endpointParams.replaceFirst('user', 'backplaneAuthorization, backplaneToken');
+    final functionParams =
+        endpointParams.replaceFirst('backplaneUserProfile', 'backplaneAuthorization, backplaneToken');
     endpoint.body += 'return this.${serviceName.camelCase}.${endpoint.name}($functionParams);';
+  }
+}
+
+void removeRequestBodyRefs(Controller controller) {
+  for (final method in controller.classDefinition.methods) {
+    final requestBodyParam = method.parameters
+        .map((e) => e.annotation)
+        .whereType<Annotation>()
+        .firstWhere((element) => element.name == 'requestBody');
+    requestBodyParam.parameters = [];
   }
 }
 
 void formatController(File controllerFile) {
   Process.runSync('tsfmt', ['-r', controllerFile.absolute.path], runInShell: true);
-}
-
-String removeRequestBodyRefs(String controller) {
-  final requestBodyRefRegexp = RegExp(
-    r"@requestBody\(\s*\{\s*\$ref: '#\/components\/requestBodies\/DataOffering',?\s*\}\s*\)",
-  );
-  return controller.replaceAll(requestBodyRefRegexp, '@requestBody()');
 }
