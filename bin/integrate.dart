@@ -437,9 +437,8 @@ void removeRequestBodyRefs(Controller controller) {
   for (final method in controller.classDefinition.methods) {
     final requestBodyParam = method.parameters
         .map((e) => e.annotation)
-        .whereType<Annotation>()
-        .firstWhere((element) => element.name == 'requestBody');
-    requestBodyParam.parameters = [];
+        .firstWhere((element) => element?.name == 'requestBody', orElse: () => null);
+    requestBodyParam?.parameters = [];
   }
 }
 
