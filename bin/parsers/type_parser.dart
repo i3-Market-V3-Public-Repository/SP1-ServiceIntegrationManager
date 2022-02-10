@@ -28,7 +28,7 @@ class TypeDefinition extends GrammarDefinition {
       (ref0(objectTypeElement).separatedBy(ref0(semicolon), optionalSeparatorAtEnd: true) | ref0(dictType)).optional() &
       ref0(rBracket);
 
-  Parser objectTypeElement() => ref0(identifier) & char('?').optional() & ref0(colon) & ref0(type);
+  Parser objectTypeElement() => (ref0(identifier) | ref0(stringLiteral)) & char('?').optional() & ref0(colon) & ref0(type);
 
   Parser dictType() =>
       ref0(lBrace) &
