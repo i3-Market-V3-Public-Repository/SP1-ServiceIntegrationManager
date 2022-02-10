@@ -1,4 +1,4 @@
-FROM google/dart
+FROM google/dart:2.16
 
 RUN apt-get update
 RUN apt-get -y install curl gnupg
