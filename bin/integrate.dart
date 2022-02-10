@@ -367,7 +367,7 @@ void protectControllerGrammar(Controller controller, String serviceName) {
         final scopesString = jsonEncode(scopes).replaceAll('"', "'");
         method.annotations.add(Annotation(name: 'authorize', parameters: ['{scopes: $scopesString}']));
       }
-      method.body = 'const backplaneAuthorization = `Bearer \${sign(user, this.secret)}`;\n'
+      method.body = 'const backplaneAuthorization = `Bearer \${sign(backplaneUserProfile, this.secret)}`;\n'
           "const backplaneToken = this.request.headers['authorization']!;\n"
           '${method.body}';
     } else {
@@ -376,7 +376,7 @@ void protectControllerGrammar(Controller controller, String serviceName) {
     final numParams = method.parameters.length;
     method.parameters.removeWhere((param) => ['backplaneToken', 'backplaneAuthorization'].contains(param.name));
     if (numParams != method.parameters.length) {
-      method.parameters.add(Parameter(
+      method.parameters.insert(0, Parameter(
           annotation: Annotation(name: 'inject', parameters: ['SecurityBindings.USER']),
           name: 'backplaneUserProfile',
           type: 'BackplaneUserProfile'));
