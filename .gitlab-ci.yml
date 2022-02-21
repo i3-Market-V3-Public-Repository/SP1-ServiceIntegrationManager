@@ -41,7 +41,7 @@ compile:
   stage: compile
   only:
     - tags
-  image: google/dart:2.12
+  image: dart:2.16
   before_script:
     - export PATH="$PATH":"~/.pub-cache/bin"
     - pub get --no-precompile

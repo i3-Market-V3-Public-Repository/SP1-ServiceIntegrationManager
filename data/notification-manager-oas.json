@@ -1,0 +1,1611 @@
+{
+  "info": {
+    "description": "i3-Market Notification Manager",
+    "contact": {
+      "name": "HOPU NM API Support",
+      "email": "eleazar@hopu.eu"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "title": "Notification Manager",
+    "version": "v2.0"
+  },
+  "tags": [
+    {
+      "name": "Subscriptions"
+    },
+    {
+      "name": "Queues"
+    },
+    {
+      "name": "Notifications"
+    }
+  ],
+  "servers": [
+    {
+      "description": "Production Server",
+      "url": "http://95.211.3.249:10010"
+    },
+    {
+      "description": "Development Server",
+      "url": "http://localhost:10010"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "summary": "Go To Swagger"
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "summary": "Version"
+      }
+    },
+    "/api/v1/version": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "summary": "Version"
+      }
+    },
+    "/api/v1/services": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Service"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "84744b8b-fb2d-4a16-9d86-6b1a2cd34c62",
+                    "name": "i3-market-test",
+                    "endpoint": "https://webhook.site/11798498-a25a-429c-ac11-8d2d9aa26e83",
+                    "queues": [
+                      {
+                        "id": "b11807ce-17ad-416f-9bd1-bdf9dd049dcf",
+                        "name": "offering.new",
+                        "endpoint": null,
+                        "active": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Get Services"
+      },
+      "post": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Service"
+                },
+                "example": {
+                  "id": "123445-123-1245-12345-12354566773",
+                  "name": "service-test-2",
+                  "endpoint": "https://test-server:1234/endpoint",
+                  "queues": []
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Create Service",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notification": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Notification"
+                  }
+                }
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get Notifications"
+      },
+      "post": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Notification User",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserNotification"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notification/unread": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Notification"
+                  }
+                }
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get Unread Notifications"
+      }
+    },
+    "/api/v1/users/subscriptions": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserSubscriptionList"
+                  }
+                }
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get all users subscriptions",
+        "description": ":return:"
+      }
+    },
+    "/api/v1/notification/service": {
+      "post": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Notification Service",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceNotification"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/services/{service_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Service"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Get Services By Id"
+      },
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Service"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Delete Service"
+      }
+    },
+    "/api/v1/notification/user/{user_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Notification"
+                  }
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get Notification By Userid"
+      }
+    },
+    "/api/v1/services/{service_id}/queues": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Queue"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "b11807ce-17ad-416f-9bd1-bdf9dd049dcf",
+                    "name": "offering.new",
+                    "endpoint": null,
+                    "active": false
+                  }
+                ]
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Get Queues"
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Queue"
+                },
+                "example": {
+                  "id": "asd124-ergh1-5673-456345-sdf879efw78",
+                  "name": "offering.update",
+                  "endpoint": "https://webhook.site/11798498-a25a-429c-ac11-8d2d9aa26e83",
+                  "active": true
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Post Queues",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueueInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/subscriptions": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Subscription"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "82bb0248-6ce3-4fe4-9e68-6c30fe0ef41b",
+                    "category": "Agriculture",
+                    "active": true
+                  }
+                ]
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get Subscriptions By Userid"
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Create subscription to category",
+        "description": ":param user_id:\n:return:",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubscription"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/subscriptions/{category}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsersList"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get Users List Category"
+      }
+    },
+    "/api/v1/notification/{notification_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get Notification"
+      },
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Delete Notification"
+      }
+    },
+    "/api/v1/notification/user/{user_id}/unread": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Notification"
+                  }
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get Unread Notifications By Id"
+      }
+    },
+    "/api/v1/notification/{notification_id}/read": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Modify Notification"
+      }
+    },
+    "/api/v1/notification/{notification_id}/unread": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Modify Notification"
+      }
+    },
+    "/api/v1/services/{service_id}/queues/{queue_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "queue_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Queue"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Get Queues By Id"
+      },
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "queue_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Queue"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Delete Queue"
+      }
+    },
+    "/api/v1/users/{user_id}/subscriptions/{subscription_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                },
+                "example": {
+                  "id": "82bb0248-6ce3-4fe4-9e68-6c30fe0ef41b",
+                  "category": "Agriculture",
+                  "active": true
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get user subscription by user_id and subscription_id.",
+        "description": ":param user_id:\n:param subscription_id:\n:return:"
+      },
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Delete subscription by user_id and subscription_id",
+        "description": ":param user_id: User id of the user\n:param subscription_id: Subscription id\n:return: Subscription"
+      }
+    },
+    "/api/v1/services/{service_id}/queues/{queue_id}/activate": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "queue_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Queue"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Status Queue"
+      }
+    },
+    "/api/v1/services/{service_id}/queues/{queue_id}/deactivate": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "queue_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Queue"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Queues"
+        ],
+        "summary": "Status Queue"
+      }
+    },
+    "/api/v1/users/{user_id}/subscriptions/{subscription_id}/activate": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Activate or deactivate user subscription",
+        "description": ":param user_id:\n:param subscription_id:\n:return:"
+      }
+    },
+    "/api/v1/users/{user_id}/subscriptions/{subscription_id}/deactivate": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Activate or deactivate user subscription",
+        "description": ":param user_id:\n:param subscription_id:\n:return:"
+      }
+    }
+  },
+  "openapi": "3.0.0",
+  "components": {
+    "schemas": {
+      "ValidationError": {
+        "properties": {
+          "detail": {
+            "type": "object",
+            "properties": {
+              "<location>": {
+                "type": "object",
+                "properties": {
+                  "<field_name>": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "HTTPError": {
+        "properties": {
+          "detail": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Queue": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Describes if the queue is active to send notifications"
+          },
+          "endpoint": {
+            "type": "string",
+            "description": "Specific endpoint for this queue, if not specified, the generic endpoint for this service will be used"
+          },
+          "name": {
+            "type": "string",
+            "enum": [
+              "offering.new",
+              "offering.update",
+              "agreement.accepted",
+              "agreement.rejected",
+              "agreement.update",
+              "agreement.pending",
+              "agreement.termination",
+              "agreement.claim"
+            ],
+            "example": "offering.new",
+            "description": "Queue name to send the notification"
+          },
+          "id": {
+            "type": "string",
+            "description": "Autogenerated id for identification"
+          }
+        },
+        "required": [
+          "active",
+          "id",
+          "name"
+        ]
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Generic endpoint for this service where the notifications will be sent"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name for the service",
+            "example": "service-test"
+          },
+          "queues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Queue"
+            }
+          }
+        },
+        "required": [
+          "endpoint",
+          "name"
+        ]
+      },
+      "ServiceInput": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Generic endpoint for this service where the notifications will be sent"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name for the service",
+            "example": "service-test"
+          }
+        },
+        "required": [
+          "endpoint",
+          "name"
+        ]
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string",
+            "description": "Origin of the notification"
+          },
+          "receptor": {
+            "type": "string",
+            "description": "Destination of the notification"
+          },
+          "data": {
+            "type": "object",
+            "description": "Contains the data of the notification"
+          },
+          "action": {
+            "type": "string",
+            "description": "Action for the notification"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the notification"
+          },
+          "unread": {
+            "type": "boolean",
+            "description": "True if the notification has not been read, otherwise false"
+          },
+          "id": {
+            "type": "string",
+            "description": "Autogenerated ID for identification"
+          }
+        },
+        "required": [
+          "action",
+          "id",
+          "origin",
+          "receptor",
+          "status"
+        ]
+      },
+      "UserNotification": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string",
+            "description": "Origin of the notification"
+          },
+          "predefined": {
+            "type": "boolean",
+            "example": "true",
+            "description": ""
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "offering.new",
+              "offering.update",
+              "agreement.accepted",
+              "agreement.rejected",
+              "agreement.update",
+              "agreement.pending",
+              "agreement.termination",
+              "agreement.claim"
+            ],
+            "example": "offering.new",
+            "description": "Queue name to send the notification"
+          },
+          "receiver_id": {
+            "type": "string",
+            "description": "User ID for notify a user",
+            "example": "UserID123"
+          },
+          "message": {
+            "type": "object",
+            "description": "Data to send, example={'category': 'Agriculture'}"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the notification"
+          }
+        },
+        "required": [
+          "origin",
+          "receiver_id",
+          "status",
+          "type"
+        ]
+      },
+      "Subscription": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Describes if the subscription is active or not"
+          },
+          "category": {
+            "type": "string",
+            "description": "Category the user subscribes to"
+          },
+          "id": {
+            "type": "string",
+            "description": "Autogenerated id for identification"
+          }
+        },
+        "required": [
+          "active",
+          "category",
+          "id"
+        ]
+      },
+      "UserSubscriptionList": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "subscriptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Subscription"
+            }
+          }
+        }
+      },
+      "ServiceNotification": {
+        "type": "object",
+        "properties": {
+          "receiver_id": {
+            "type": "string",
+            "enum": [
+              "offering.new",
+              "offering.update",
+              "agreement.accepted",
+              "agreement.rejected",
+              "agreement.update",
+              "agreement.pending",
+              "agreement.termination",
+              "agreement.claim"
+            ],
+            "example": "offering.new",
+            "description": "Queue name to send the notification"
+          },
+          "message": {
+            "type": "object",
+            "description": "Data to send, example={'category': 'Agriculture'}"
+          }
+        },
+        "required": [
+          "receiver_id"
+        ]
+      },
+      "QueueInput": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Specific endpoint for this queue, if not specified, the generic endpoint for this service will be used"
+          },
+          "name": {
+            "type": "string",
+            "enum": [
+              "offering.new",
+              "offering.update",
+              "agreement.accepted",
+              "agreement.rejected",
+              "agreement.update",
+              "agreement.pending",
+              "agreement.termination",
+              "agreement.claim"
+            ],
+            "example": "offering.new",
+            "description": "Queue name to send the notification"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateSubscription": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Category the user subscribes to"
+          }
+        },
+        "required": [
+          "category"
+        ]
+      },
+      "UsersList": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

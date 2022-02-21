@@ -37,6 +37,12 @@ import 'package:recase/recase.dart';
 import 'package:validators2/validators.dart';
 import 'package:yaml/yaml.dart';
 
+import 'metaObjects/annotation.dart';
+import 'metaObjects/controller.dart';
+import 'metaObjects/import.dart';
+import 'metaObjects/method.dart';
+import 'parsers/typescript_parser.dart';
+
 void main(List<String> arguments) async {
   welcome();
   final projectPath = askBasePath();
@@ -303,9 +309,11 @@ void customizeDatasources(String projectPath, String serviceName) {
     if (index == -1) continue;
     final indexEnd = content.indexWhere((element) => element == '  }', index);
     if (indexEnd == -1) continue;
-    for(var i = index+1; i < indexEnd; i++) { //in case there exists more than one line (it shouldn't)
+    for (var i = index + 1; i < indexEnd; i++) {
+      //in case there exists more than one line (it shouldn't)
       final operationRegexp = RegExp(r'return (.*);');
-      if (operationRegexp.hasMatch(content.elementAt(i))){ // found, replace return
+      if (operationRegexp.hasMatch(content.elementAt(i))) {
+        // found, replace return
         final itemToReturn = operationRegexp.firstMatch(content.elementAt(i))?.group(1);
         final newLine = '   return {isOpenApi: true, headers: response.headers, value: ($itemToReturn)};';
         content[i] = newLine;
@@ -319,125 +327,121 @@ void finishControllers(String projectPath, String serviceName) {
   final controllers = Directory('$projectPath/src/controllers/$serviceName').listSync().whereType<File>();
   for (final controllerFile in controllers) {
     print('Finishing controller ${basename(controllerFile.path)}');
-    final controller = controllerFile.readAsStringSync().replaceAll(RegExp(r'^\s*//.*', multiLine: true), '');
-    final protectedController = protectController(serviceName, controller);
-    final connectedController = connectController(protectedController, projectPath, serviceName);
-    final finishedController = removeRequestBodyRefs(connectedController);
-    controllerFile.writeAsStringSync(finishedController);
+    final controllerContent = controllerFile.readAsStringSync();
+    final parsedController = Lb4ControllerDefinition().build().parse(controllerContent);
+    final Controller controller = parsedController.value;
+    protectControllerGrammar(controller, serviceName);
+    connectControllerGrammar(controller, projectPath, serviceName);
+    removeRequestBodyRefs(controller);
+    controllerFile.writeAsStringSync(controller.toString());
+    formatController(controllerFile);
   }
 }
 
-String protectController(String serviceName, String controller) {
-  controller = "import {authenticate} from '@loopback/authentication';\n"
-          "import {authorize} from '@loopback/authorization';\n"
-          "import {JWT_STRATEGY_NAME} from '../../auth/jwt.strategy';\n"
-          "import {SecurityBindings} from '@loopback/security';\n"
-          "import {BackplaneUserProfile} from '../../auth/users';\n"
-          "import {Request, RestBindings} from '@loopback/rest';\n"
-          "import {inject} from '@loopback/core';\n"
-          "import {sign} from 'jsonwebtoken';\n" +
-      controller;
-  final operationRegexp = RegExp(
-      r"@operation\('(?<verb>\w+)', '(?<path>[\w\.\/?&%\-\{\}]+)', (?<spec>\{.*?\}(?=\)\s*async))\)\s*"
-      r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:?]+(\s*,\s*)?)*?)\): '
-      //FIXME Can fail if promised object contains "
-      r"Promise<[\w\|\{\}\s\[\]\?\:\;\#']+> {\s+(?<body>throw new Error\('Not implemented'\);)",
-      dotAll: true);
-  for (final match in operationRegexp.allMatches(controller)) {
-    final method = match.namedGroup('verb')!.toUpperCase();
-    final path = match.namedGroup('path')!;
-    final newPath = '/$serviceName$path';
-    final spec = loadYaml(match.namedGroup('spec')!) as Map;
+void protectControllerGrammar(Controller controller, String serviceName) {
+  final newImports = [
+    ImportStatement(['authenticate'], '@loopback/authentication'),
+    ImportStatement(['authorize'], '@loopback/authorization'),
+    ImportStatement(['JWT_STRATEGY_NAME'], '../../auth/jwt.strategy'),
+    ImportStatement(['SecurityBindings'], '@loopback/security'),
+    ImportStatement(['BackplaneUserProfile'], '../../auth/users'),
+    ImportStatement(['Request', 'RestBindings'], '@loopback/rest'),
+    ImportStatement(['inject'], '@loopback/core'),
+    ImportStatement(['sign'], 'jsonwebtoken'),
+  ];
+  controller.imports.addAll(newImports);
+  for (final method in controller.classDefinition.methods) {
+    final operationAnnotation = method.annotations.firstWhere((annotation) => annotation.name == 'operation');
+    final verb = operationAnnotation.parameters[0].toUpperCase();
+    final path = operationAnnotation.parameters[1];
+    final newPath = '\'/$serviceName${path.substring(1)}';
+    operationAnnotation.parameters[1] = newPath;
+    final spec = loadYaml(operationAnnotation.parameters[2]) as Map;
     final security = spec['security'] as List?;
-    var endpoint = match[0]!;
-    endpoint = endpoint.replaceAll(path, newPath);
     if (security != null) {
+      method.annotations.add(Annotation(name: 'authenticate', parameters: ['JWT_STRATEGY_NAME']));
       final scopes =
           (security.firstWhere((element) => (element as Map).containsKey('openIdConnect'))['openIdConnect'] as List);
-      print('\t$method: $path -> $newPath || Scopes: $scopes');
-      endpoint = endpoint.replaceFirst('async', '@authenticate(JWT_STRATEGY_NAME)\n  async');
+      print('\t$verb: $path -> $newPath || Scopes: $scopes');
       if (scopes.isNotEmpty) {
         final scopesString = jsonEncode(scopes).replaceAll('"', "'");
-        endpoint = endpoint.replaceFirst('async', '@authorize({scopes: $scopesString})\n  async');
+        method.annotations.add(Annotation(name: 'authorize', parameters: ['{scopes: $scopesString}']));
       }
-      final body = match.namedGroup('body')!;
-      endpoint = endpoint.replaceAll(
-          body,
-          'const backplaneAuthorization = `\${sign(backplaneUserProfile, this.secret)}`;\n'
-          "    const backplaneToken = this.request.headers['authorization']!;\n"
-          '    $body');
+      method.body = 'const backplaneAuthorization = `Bearer \${sign(backplaneUserProfile, this.secret)}`;\n'
+          "const backplaneToken = this.request.headers['authorization']!;\n"
+          '${method.body}';
     } else {
-      print('\t$method: $path -> $newPath || No security');
+      print('\t$verb: $path -> $newPath || No security');
     }
-    controller = controller.replaceFirst(match[0]!, endpoint);
+    final numParams = method.parameters.length;
+    method.parameters.removeWhere((param) => ['backplaneToken', 'backplaneAuthorization'].contains(param.name));
+    if (numParams != method.parameters.length) {
+      method.parameters.insert(0, Parameter(
+          annotation: Annotation(name: 'inject', parameters: ['SecurityBindings.USER']),
+          name: 'backplaneUserProfile',
+          type: 'BackplaneUserProfile'));
+    }
+
+    String operationSpec = operationAnnotation.parameters[2];
+    operationSpec = operationSpec.replaceAll(
+        RegExp(r" *\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*},\s*"), '');
+    operationAnnotation.parameters[2] = operationSpec.replaceAll(
+        RegExp(r" *\{\s*name\: 'backplane-token',\s*in: 'header',\s*required: true,\s*},\s*"), '');
+
+    method.documentation = method.documentation.replaceAll(RegExp(r'\* @param backplaneAuthorization\s+(?=\*)'), '');
+    method.documentation =
+        method.documentation.replaceAll(RegExp(r'\* @param backplaneToken'), '* @param backplaneUserProfile');
   }
-
-  final authParamSpecRegexp =
-      RegExp(r" *\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*},\s*");
-  controller = controller.replaceAll(authParamSpecRegexp, '');
-
-  final authParamRegexp = RegExp(
-      r"@param\(\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*\}\) backplaneAuthorization: string");
-  controller = controller.replaceAll(authParamRegexp, '@inject(SecurityBindings.USER) backplaneUserProfile: BackplaneUserProfile');
-
-  final jsAuthDocRegexp = RegExp(r'\* @param backplaneAuthorization\s+(?=\*)');
-  controller = controller.replaceAll(jsAuthDocRegexp, '');
-
-  final tokenParamSpecRegexp = RegExp(r" *\{\s*name\: 'backplane-token',\s*in: 'header',\s*required: true,\s*},\s*");
-  controller = controller.replaceAll(tokenParamSpecRegexp, '');
-
-  final tokenParamRegexp = RegExp(
-      r"@param\(\{\s*name\: 'backplane-token',\s*in: 'header',\s*required: true,\s*\}\) backplaneToken: string,?");
-  controller = controller.replaceAll(tokenParamRegexp, '');
-
-  final jsTokenDocRegexp = RegExp(r'\* @param backplaneToken');
-  controller = controller.replaceAll(jsTokenDocRegexp, '* @param backplaneUserProfile');
-
-  return controller;
 }
 
-String connectController(String protectedController, String projectPath, String subsystemName) {
-  String controller = protectedController;
-  final controllerName = RegExp(r'export class (\w+) {').firstMatch(controller)![1]!;
-  final serviceName = controllerName.replaceAll(RegExp(r'Controller$'), 'Service');
+void connectControllerGrammar(Controller controller, String projectPath, String subsystemName) {
+  final serviceName = controller.classDefinition.name.replaceAll(RegExp(r'Controller$'), 'Service');
   final providerName = serviceName + 'Provider';
-  controller = "import {$serviceName, $providerName} from '../../services';\n"
-          "import {service} from '@loopback/core';\n" +
-      controller;
-  controller = controller.replaceAll(
-    'constructor() {}',
-    'private readonly secret: string;\n'
-        '  constructor(@service($providerName) public ${serviceName.camelCase}: $serviceName,\n'
-        '              @inject(RestBindings.Http.REQUEST) private request: Request,\n'
-        "              @inject('config.secrets') private secrets: {[service: string]: string}) {\n"
-        "    this.secret = this.secrets['$subsystemName'];\n"
-        '  }',
-  );
-  final operationRegexp = RegExp(
-      r'async (?<function>\w+)'
-      r'\((?<params>(@[\w\.]+\(.*?\) \w+: [\w\|\{\}\s\[\];:?]+(\s*,\s*)?)*?)\): '
-      r"Promise<[\w\|\{\}\s\[\]\?\:\;\#']+> {(?<body>(?<userBody>.*?)?throw new Error\('Not implemented'\);)",
-      dotAll: true);
-  print('\tNumber of endpoints: ${operationRegexp.allMatches(controller).length}');
-  return controller.replaceAllMapped(operationRegexp, (match) {
-    final rematch = match as RegExpMatch;
-    final params = rematch
-        .namedGroup('params')!
-        // FIXME Can fail if parameter specification has the string '})' somewhere
-        .split(RegExp(r'@[\w\.]+\(\{?.*?(?:\}|USER)\)', dotAll: true))
-        .where((element) => element.isNotEmpty)
-        .map((e) => e.split(':').first.trim());
-    return rematch[0]!.replaceFirst(
-        rematch.namedGroup('body')!,
-        '${rematch.namedGroup('userBody') ?? ''}return this.${serviceName.camelCase}.${rematch.namedGroup('function')}'
-        '(${params.join(', ').replaceFirst('backplaneUserProfile', 'backplaneAuthorization, backplaneToken')})');
-  });
+
+  controller.imports.addAll([
+    ImportStatement([serviceName, providerName], '../../services'),
+    ImportStatement(['service'], '@loopback/core'),
+  ]);
+
+  controller.classDefinition.constructor.parameters.addAll([
+    ConstructorParameter(
+        annotation: Annotation(name: 'service', parameters: [providerName]),
+        visibilitySpecifier: 'public',
+        name: serviceName.camelCase,
+        type: serviceName),
+    ConstructorParameter(
+        annotation: Annotation(name: 'inject', parameters: ['RestBindings.Http.REQUEST']),
+        visibilitySpecifier: 'private',
+        name: 'request',
+        type: 'Request'),
+    ConstructorParameter(
+        annotation: Annotation(name: 'inject', parameters: ["'config.secrets'"]),
+        visibilitySpecifier: 'private',
+        name: 'secrets',
+        type: '{[service: string]: string}'),
+  ]);
+
+  controller.classDefinition.variables.add('private readonly secret: string;');
+  controller.classDefinition.constructor.body += "this.secret = this.secrets['$subsystemName'];\n";
+
+  print('\tNumber of endpoints: ${controller.classDefinition.methods.length}');
+  for (final endpoint in controller.classDefinition.methods) {
+    final endpointParams = endpoint.parameters.map((e) => e.name).join(', ');
+    final functionParams =
+        endpointParams.replaceFirst('backplaneUserProfile', 'backplaneAuthorization, backplaneToken');
+    endpoint.body += 'return this.${serviceName.camelCase}.${endpoint.name}($functionParams);';
+  }
 }
 
-String removeRequestBodyRefs(String controller) {
-  final requestBodyRefRegexp = RegExp(
-    r"@requestBody\(\s*\{\s*\$ref: '#\/components\/requestBodies\/DataOffering',?\s*\}\s*\)",
-  );
-  return controller.replaceAll(requestBodyRefRegexp, '@requestBody()');
+void removeRequestBodyRefs(Controller controller) {
+  for (final method in controller.classDefinition.methods) {
+    final requestBodyParam = method.parameters
+        .map((e) => e.annotation)
+        .firstWhere((element) => element?.name == 'requestBody', orElse: () => null);
+    requestBodyParam?.parameters = [];
+  }
+}
+
+void formatController(File controllerFile) {
+  Process.runSync('tsfmt', ['-r', controllerFile.absolute.path], runInShell: true);
 }

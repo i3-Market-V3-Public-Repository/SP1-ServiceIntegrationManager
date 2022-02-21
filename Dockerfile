@@ -26,7 +26,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-FROM google/dart
+FROM dart:2.16
 
 RUN apt-get update
 RUN apt-get -y install curl gnupg
