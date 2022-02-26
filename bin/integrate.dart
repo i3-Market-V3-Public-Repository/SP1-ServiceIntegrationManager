@@ -185,11 +185,10 @@ void modifySpec(File specFile) {
       if (metadata.containsKey('security')) {
         final securitySchemas = metadata['security'] as List;
         final isSecured =
-            securitySchemas.whereType<Map<String, dynamic>>().any((element) => element.containsKey('openIdConnect'));
+            securitySchemas.whereType<Map<String, dynamic>>().any((element) => element.containsKey('jwt'));
         if (isSecured) {
           final newParams = [
-            {'name': 'backplane-authorization', 'in': 'header', 'required': true},
-            {'name': 'backplane-token', 'in': 'header', 'required': true}
+            {'name': 'id_token', 'in': 'header', 'required': true}
           ];
           metadata.update('parameters', (value) => (value as List)..insertAll(0, newParams), ifAbsent: () => newParams);
         }
@@ -367,13 +366,13 @@ void protectControllerGrammar(Controller controller, String serviceName) {
         final scopesString = jsonEncode(scopes).replaceAll('"', "'");
         method.annotations.add(Annotation(name: 'authorize', parameters: ['{scopes: $scopesString}']));
       }
-      method.body = "const idToken = this.request.headers['id_token']!;\n"
+      method.body = "const idToken = this.request.headers['id_token']! as string;\n"
           '${method.body}';
     } else {
       print('\t$verb: $path -> $newPath || No security');
     }
     final numParams = method.parameters.length;
-    method.parameters.removeWhere((param) => ['idToken'].contains(param.name));
+    method.parameters.removeWhere((param) => ['id_token'].contains(param.name));
     if (numParams != method.parameters.length) {
       method.parameters.insert(0, Parameter(
           annotation: Annotation(name: 'inject', parameters: ['SecurityBindings.USER']),
