@@ -427,7 +427,7 @@ void connectControllerGrammar(Controller controller, String projectPath, String 
   for (final endpoint in controller.classDefinition.methods) {
     final endpointParams = endpoint.parameters.map((e) => e.name).join(', ');
     final functionParams =
-        endpointParams.replaceFirst('backplaneUserProfile', 'backplaneAuthorization, backplaneToken');
+        endpointParams.replaceFirst('backplaneUserProfile', 'idToken');
     endpoint.body += 'return this.${serviceName.camelCase}.${endpoint.name}($functionParams);';
   }
 }
