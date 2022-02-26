@@ -357,7 +357,7 @@ void protectControllerGrammar(Controller controller, String serviceName) {
     operationAnnotation.parameters[1] = newPath;
     final spec = loadYaml(operationAnnotation.parameters[2]) as Map;
     final security = spec['security'] as List?;
-    if (security != null) {
+    if (security != null && serviceName != 'OpenIDConnectProvider') { // add exception OpenIDConnectProvider
       method.annotations.add(Annotation(name: 'authenticate', parameters: ['JWT_STRATEGY_NAME']));
       final scopes =
           (security.firstWhere((element) => (element as Map).containsKey('jwt'))['jwt'] as List);
