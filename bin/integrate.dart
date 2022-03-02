@@ -185,11 +185,10 @@ void modifySpec(File specFile) {
       if (metadata.containsKey('security')) {
         final securitySchemas = metadata['security'] as List;
         final isSecured =
-            securitySchemas.whereType<Map<String, dynamic>>().any((element) => element.containsKey('openIdConnect'));
+            securitySchemas.whereType<Map<String, dynamic>>().any((element) => element.containsKey('jwt'));
         if (isSecured) {
           final newParams = [
-            {'name': 'backplane-authorization', 'in': 'header', 'required': true},
-            {'name': 'backplane-token', 'in': 'header', 'required': true}
+            {'name': 'id_token', 'in': 'header', 'required': true}
           ];
           metadata.update('parameters', (value) => (value as List)..insertAll(0, newParams), ifAbsent: () => newParams);
         }
@@ -358,23 +357,22 @@ void protectControllerGrammar(Controller controller, String serviceName) {
     operationAnnotation.parameters[1] = newPath;
     final spec = loadYaml(operationAnnotation.parameters[2]) as Map;
     final security = spec['security'] as List?;
-    if (security != null) {
+    if (security != null && serviceName != 'OpenIDConnectProvider') { // add exception OpenIDConnectProvider
       method.annotations.add(Annotation(name: 'authenticate', parameters: ['JWT_STRATEGY_NAME']));
       final scopes =
-          (security.firstWhere((element) => (element as Map).containsKey('openIdConnect'))['openIdConnect'] as List);
+          (security.firstWhere((element) => (element as Map).containsKey('jwt'))['jwt'] as List);
       print('\t$verb: $path -> $newPath || Scopes: $scopes');
       if (scopes.isNotEmpty) {
         final scopesString = jsonEncode(scopes).replaceAll('"', "'");
         method.annotations.add(Annotation(name: 'authorize', parameters: ['{scopes: $scopesString}']));
       }
-      method.body = 'const backplaneAuthorization = `Bearer \${sign(backplaneUserProfile, this.secret)}`;\n'
-          "const backplaneToken = this.request.headers['authorization']!;\n"
+      method.body = "const idToken = this.request.headers['id_token']! as string;\n"
           '${method.body}';
     } else {
       print('\t$verb: $path -> $newPath || No security');
     }
     final numParams = method.parameters.length;
-    method.parameters.removeWhere((param) => ['backplaneToken', 'backplaneAuthorization'].contains(param.name));
+    method.parameters.removeWhere((param) => ['id_token'].contains(param.name));
     if (numParams != method.parameters.length) {
       method.parameters.insert(0, Parameter(
           annotation: Annotation(name: 'inject', parameters: ['SecurityBindings.USER']),
@@ -383,14 +381,14 @@ void protectControllerGrammar(Controller controller, String serviceName) {
     }
 
     String operationSpec = operationAnnotation.parameters[2];
-    operationSpec = operationSpec.replaceAll(
-        RegExp(r" *\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*},\s*"), '');
+    /*operationSpec = operationSpec.replaceAll(
+        RegExp(r" *\{\s*name\: 'backplane-authorization',\s*in: 'header',\s*required: true,\s*},\s*"), '');*/
     operationAnnotation.parameters[2] = operationSpec.replaceAll(
-        RegExp(r" *\{\s*name\: 'backplane-token',\s*in: 'header',\s*required: true,\s*},\s*"), '');
+        RegExp(r" *\{\s*name\: 'id_token',\s*in: 'header',\s*required: true,\s*},\s*"), '');
 
-    method.documentation = method.documentation.replaceAll(RegExp(r'\* @param backplaneAuthorization\s+(?=\*)'), '');
+   //method.documentation = method.documentation.replaceAll(RegExp(r'\* @param backplaneAuthorization\s+(?=\*)'), '');
     method.documentation =
-        method.documentation.replaceAll(RegExp(r'\* @param backplaneToken'), '* @param backplaneUserProfile');
+        method.documentation.replaceAll(RegExp(r'\* @param idToken'), '* @param backplaneUserProfile');
   }
 }
 
@@ -428,7 +426,7 @@ void connectControllerGrammar(Controller controller, String projectPath, String 
   for (final endpoint in controller.classDefinition.methods) {
     final endpointParams = endpoint.parameters.map((e) => e.name).join(', ');
     final functionParams =
-        endpointParams.replaceFirst('backplaneUserProfile', 'backplaneAuthorization, backplaneToken');
+        endpointParams.replaceFirst('backplaneUserProfile', 'idToken');
     endpoint.body += 'return this.${serviceName.camelCase}.${endpoint.name}($functionParams);';
   }
 }
