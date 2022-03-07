@@ -331,7 +331,7 @@ void finishControllers(String projectPath, String serviceName) {
     final Controller controller = parsedController.value;
     protectControllerGrammar(controller, serviceName);
     connectControllerGrammar(controller, projectPath, serviceName);
-    removeRequestBodyRefs(controller);
+    //removeRequestBodyRefs(controller);
     controllerFile.writeAsStringSync(controller.toString());
     formatController(controllerFile);
   }
