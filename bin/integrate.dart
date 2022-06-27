@@ -207,6 +207,8 @@ void modifySpec(File specFile) {
 void integrateService(String projectPath, String serviceName, File specFile) {
   print('Creating directories');
   createServiceDirectories(projectPath, serviceName);
+  print('Modify schema references');
+  modifyOASSchemaRef(serviceName, specFile);
   print('Creating sources');
   String output = runServiceCreation(serviceName, projectPath, specFile);
   print('Moving files');
@@ -227,6 +229,32 @@ void createServiceDirectories(String projectPath, String serviceName) {
   Directory('$projectPath/src/models/$serviceName').createSync(recursive: true);
   Directory('$projectPath/src/repositories/$serviceName').createSync(recursive: true);
   Directory('$projectPath/src/services/$serviceName').createSync(recursive: true);
+}
+
+void modifyOASSchemaRef(String serviceName, File specFile){
+  Map<String, dynamic> oasContent = json.decode(specFile.readAsStringSync());
+  Map<String, dynamic> newSchemaMap = <String, dynamic>{};
+  if (!oasContent.containsKey('components') || !oasContent['components'].containsKey('schemas')){ //Skip if no schemas are found components/schemas
+    print('No schemas found under components/schemas - Skip!');
+    return;
+  }
+  Map<String, dynamic> schemaMap = oasContent['components']['schemas'] as Map<String, dynamic>;
+  print('Found ${schemaMap.length} entries to replace under components/schemas');
+  schemaMap.forEach((key, value) {
+    String keyMod = serviceName + '_' + key;
+    newSchemaMap.addEntries([MapEntry(keyMod, value)]);
+  });
+
+  // replace schema map
+  oasContent['components']['schemas'] = newSchemaMap;
+  String res = json.encode(oasContent);
+
+  // Replace internal references
+  final regexp = RegExp("[\"\']#\/components\/schemas\/(.*?)[\"\']");
+  final resMod = res.replaceAllMapped(regexp, (match) => match.group(0).toString()
+      .replaceAll(match.group(1).toString(), serviceName + '_' + match.group(1).toString()));
+  //rewrite 0AS File
+  specFile.writeAsStringSync(resMod);
 }
 
 String runServiceCreation(String serviceName, String projectPath, File specFile) {
