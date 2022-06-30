@@ -29,7 +29,6 @@
 */
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
@@ -68,24 +67,10 @@ String askServiceNameAndOverwrite(String projectPath) {
   final integratedServicesDirectory = Directory('$projectPath/integrated_services')..createSync();
   Directory('$projectPath/integrated_services/sources').createSync();
   final specFile = getFile(integratedServicesDirectory, serviceName);
-  if (specFile == null) {
-    createSecret(projectPath, serviceName);
-  } else {
+  if (specFile != null) {
     overwriteService(specFile, projectPath, serviceName);
   }
   return serviceName;
-}
-
-void createSecret(String projectPath, String serviceName) {
-  final secretsFile = File('$projectPath/src/secrets.json')..createSync();
-  final content = secretsFile.readAsStringSync();
-  final secrets = jsonDecode(content.isEmpty ? '{}' : content) as Map<String, dynamic>;
-  const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  final random = Random.secure();
-  final secret = String.fromCharCodes(Iterable.generate(32, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
-  secrets[serviceName] = secret;
-  secretsFile.writeAsStringSync(JsonEncoder.withIndent('  ').convert(secrets));
-  print('Secret generated for the $serviceName service: $secret');
 }
 
 void overwriteService(File specFile, String projectPath, String serviceName) {
@@ -440,15 +425,7 @@ void connectControllerGrammar(Controller controller, String projectPath, String 
         visibilitySpecifier: 'private',
         name: 'request',
         type: 'Request'),
-    ConstructorParameter(
-        annotation: Annotation(name: 'inject', parameters: ["'config.secrets'"]),
-        visibilitySpecifier: 'private',
-        name: 'secrets',
-        type: '{[service: string]: string}'),
   ]);
-
-  controller.classDefinition.variables.add('private readonly secret: string;');
-  controller.classDefinition.constructor.body += "this.secret = this.secrets['$subsystemName'];\n";
 
   print('\tNumber of endpoints: ${controller.classDefinition.methods.length}');
   for (final endpoint in controller.classDefinition.methods) {
