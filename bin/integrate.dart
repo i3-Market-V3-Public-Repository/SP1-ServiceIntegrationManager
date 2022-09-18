@@ -205,7 +205,12 @@ void integrateService(String projectPath, String serviceName, File specFile) {
   print('Customize Datasources');
   customizeDatasources(projectPath, serviceName);
   print('Finishing controllers');
-  finishControllers(projectPath, serviceName);
+  finishControllers(projectPath, serviceName, requiresProtection(specFile));
+}
+
+bool requiresProtection(File specFile){
+  Map<String, dynamic> oasContent = json.decode(specFile.readAsStringSync());
+  return !oasContent['info'].containsKey('x-skip-auth') || !oasContent['info']['x-skip-auth'];
 }
 
 void createServiceDirectories(String projectPath, String serviceName) {
@@ -335,14 +340,15 @@ void customizeDatasources(String projectPath, String serviceName) {
   }
 }
 
-void finishControllers(String projectPath, String serviceName) {
+void finishControllers(String projectPath, String serviceName, bool requiresProtection) {
   final controllers = Directory('$projectPath/src/controllers/$serviceName').listSync().whereType<File>();
+  if (!requiresProtection) print('Controller protection is skipped by OAS definition');
   for (final controllerFile in controllers) {
     print('Finishing controller ${basename(controllerFile.path)}');
     final controllerContent = controllerFile.readAsStringSync();
     final parsedController = Lb4ControllerDefinition().build().parse(controllerContent);
     final Controller controller = parsedController.value;
-    protectControllerGrammar(controller, serviceName);
+    protectControllerGrammar(controller, serviceName, requiresProtection);
     connectControllerGrammar(controller, projectPath, serviceName);
     //removeRequestBodyRefs(controller);
     controllerFile.writeAsStringSync(controller.toString());
@@ -350,7 +356,7 @@ void finishControllers(String projectPath, String serviceName) {
   }
 }
 
-void protectControllerGrammar(Controller controller, String serviceName) {
+void protectControllerGrammar(Controller controller, String serviceName, bool requiresProtection) {
   final newImports = [
     ImportStatement(['authenticate'], '@loopback/authentication'),
     ImportStatement(['authorize'], '@loopback/authorization'),
@@ -370,7 +376,7 @@ void protectControllerGrammar(Controller controller, String serviceName) {
     operationAnnotation.parameters[1] = newPath;
     final spec = loadYaml(operationAnnotation.parameters[2]) as Map;
     final security = spec['security'] as List?;
-    if (security != null && serviceName != 'OpenIDConnectProvider') { // add exception OpenIDConnectProvider
+    if (security != null && requiresProtection) {
       method.annotations.add(Annotation(name: 'authenticate', parameters: ['JWT_STRATEGY_NAME']));
       final scopes =
           (security.firstWhere((element) => (element as Map).containsKey('jwt'))['jwt'] as List);
