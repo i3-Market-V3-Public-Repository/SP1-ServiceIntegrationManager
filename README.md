@@ -38,6 +38,22 @@ This software integrates the described services of many OAS files into a single 
 
 The manager can be run using [Dart](https://dart.dev) (available [here](https://dart.dev/get-dart)) or with [Docker](https://www.docker.com/).
 
+## Features
+
+* Add `x-skip-auth` boolean attribute inside your OAS file to skip the custom authorization layer applied by
+the integrator:
+  ````json
+  {
+    "info": {
+      "description": "The API of the i3Market Open ID Connect provider.",
+      "version": "1.0.0",
+      "title": "i3-market Open ID Connect API",
+      "x-skip-auth": true
+    },
+    ...
+  }
+  ````
+
 ### Running with Dart
 
 To run the manager using Dart, clone the project, and from the project root run the following command to get all the 
