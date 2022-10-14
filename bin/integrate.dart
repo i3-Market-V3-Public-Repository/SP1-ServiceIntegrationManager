@@ -206,6 +206,8 @@ void integrateService(String projectPath, String serviceName, File specFile) {
   customizeDatasources(projectPath, serviceName);
   print('Finishing controllers');
   finishControllers(projectPath, serviceName, requiresProtection(specFile));
+  print('Finish Models (tsNoCheck)');
+  addTsNoCheckModels(projectPath, serviceName);
 }
 
 bool requiresProtection(File specFile){
@@ -313,6 +315,15 @@ void addLogs(String projectPath, String serviceName) {
     content.insert(index,
         r"  console.log(`Request redirect to -> ${response.method ?? ''}${response.url} => ${response.status} ${response.statusText}`);");
     datasource.writeAsStringSync(content.join('\n'));
+  }
+}
+
+void addTsNoCheckModels(String projectPath, String serviceName){
+  final models = Directory('$projectPath/src/models/$serviceName').listSync().whereType<File>();
+  for (final model in models) {
+    final content = model.readAsLinesSync();
+    content.insert(0, '//@ts-nocheck');
+    model.writeAsStringSync(content.join('\n'));
   }
 }
 
