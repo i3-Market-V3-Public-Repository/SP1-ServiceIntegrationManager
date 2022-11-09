@@ -37,3 +37,5 @@ Parser colon() => char(':').trim(ref0(space), ref0(space));
 Parser semicolon() => char(';').trim(ref0(space), ref0(space));
 
 Parser bar() => char('|').trim(ref0(space), ref0(space));
+
+Parser join() => char('&').trim(ref0(space), ref0(space));
