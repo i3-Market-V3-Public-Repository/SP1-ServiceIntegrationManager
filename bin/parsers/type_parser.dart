@@ -10,7 +10,7 @@ class TypeDefinition extends GrammarDefinition {
   Parser type() => ref0(lParen) & ref0(unionType) & ref0(rParen) & ref0(arrayModifier) | ref0(unionType);
 
   Parser unionType() =>
-      ((ref0(typeReference) | ref0(objectType) | ref0(stringLiteral)) & ref0(arrayModifier)).separatedBy(ref0(bar));
+      ((ref0(typeReference) | ref0(objectType) | ref0(stringLiteral)) & ref0(arrayModifier)).separatedBy(ref0(bar) | ref0(join));
 
   Parser arrayModifier() => (ref0(lBrace) & ref0(rBrace)).star();
 
