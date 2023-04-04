@@ -387,7 +387,8 @@ void protectControllerGrammar(Controller controller, String serviceName, bool re
     operationAnnotation.parameters[1] = newPath;
     final spec = loadYaml(operationAnnotation.parameters[2]) as Map;
     final security = spec['security'] as List?;
-    if (security != null && requiresProtection) {
+    final existsJWTKey = security?.any((element) => element.containsKey('jwt'));
+    if (security != null && requiresProtection && existsJWTKey!) {
       method.annotations.add(Annotation(name: 'authenticate', parameters: ['JWT_STRATEGY_NAME']));
       final scopes =
           (security.firstWhere((element) => (element as Map).containsKey('jwt'))['jwt'] as List);
