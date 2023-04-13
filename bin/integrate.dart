@@ -333,9 +333,9 @@ void customizeDatasources(String projectPath, String serviceName) {
   for (final datasource in datasources) {
     print('\tCustomizing datasource -> ${basename(datasource.path)}');
     final content = datasource.readAsLinesSync();
-    final index = content.indexWhere((element) => element.contains('if (response.status < 400) {'));
+    var index = content.indexWhere((element) => element.contains('if (response.status < 400) {'));
     if (index == -1) continue;
-    final indexEnd = content.indexWhere((element) => element == '  }', index);
+    var indexEnd = content.indexWhere((element) => element == '  }', index);
     if (indexEnd == -1) continue;
     for (var i = index + 1; i < indexEnd; i++) {
       //in case there exists more than one line (it shouldn't)
@@ -347,6 +347,23 @@ void customizeDatasources(String projectPath, String serviceName) {
         content[i] = newLine;
       }
     }
+    final customConfigExists = File('$projectPath/src/utils/datasources/CustomConfig.ts').existsSync();
+    if (customConfigExists){
+      // Add import
+      index = content.indexWhere((element) => element.contains('import'));
+      if (index == -1) continue;
+      indexEnd = content.indexWhere((element) => element.contains(';'), index);
+      if (indexEnd == -1) continue;
+      content[indexEnd] = content[indexEnd] + 'import {DatasourceCommonConfig} from \'../../utils/datasources/CustomConfig\';';
+
+      //Add DatasourceCommonConfig
+      index = content.indexWhere((element) => element.contains('const config = {'));
+      if (index == -1) continue;
+      indexEnd = content.indexWhere((element) => element == '};', index);
+      if (indexEnd == -1) continue;
+      content[indexEnd - 1] = content[indexEnd - 1] + ' ...DatasourceCommonConfig';
+    }
+
     datasource.writeAsStringSync(content.join('\n'));
   }
 }
